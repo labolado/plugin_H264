@@ -1,7 +1,8 @@
 // 最小Corona SDK兼容层 - 仅用于独立编译测试
 #include <CoronaLua.h>
-#include <CoronaGraphics.h>
+// CoronaGraphics.h not available in standalone build - using local definitions
 #include <cstring>
+#include "../../include/lua/CoronaTypes.h"
 
 extern "C" {
 
@@ -27,13 +28,7 @@ int CoronaExternalPushTexture(lua_State *L, const CoronaExternalTextureCallbacks
         lua_setfield(L, -2, "__gc");
         
         lua_pushcfunction(L, [](lua_State *L) -> int {
-            TextureUserData *ud = (TextureUserData*)luaL_checkudata(L, 1, "CoronaTexture");
-            const char *key = luaL_checkstring(L, 2);
-            
-            if (ud && ud->callbacks.onGetField) {
-                return ud->callbacks.onGetField(L, key, ud->context);
-            }
-            
+            // Simple __index - just return nil for now
             lua_pushnil(L);
             return 1;
         });

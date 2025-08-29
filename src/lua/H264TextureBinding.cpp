@@ -3,8 +3,9 @@
 
 #include <CoronaLua.h>
 #include <CoronaMacros.h>
-#include <CoronaLibrary.h>
-#include <CoronaGraphics.h>
+// CoronaLibrary.h and CoronaGraphics.h not available in standalone build
+// Using our local Corona compatibility layer instead
+#include "../../include/lua/CoronaTypes.h"
 
 #include "../../include/lua/H264TextureBinding.h"
 #include "../../include/managers/H264Movie.h"  
@@ -102,23 +103,22 @@ static unsigned int GetHeight(void *context) {
     return movie->current_video_frame.height > 0 ? movie->current_video_frame.height : 1;
 }
 
-static const void* GetImage(void *context) {
+static void GetImage(void *context, void *bitmap) {
     H264MovieTexture *movie = (H264MovieTexture*)context;
     
-    if (movie->current_video_frame.isValid()) {
+    if (movie->current_video_frame.isValid() && bitmap) {
         // Convert YUV to RGBA if we have a new frame
         if (movie->rgba_data.empty() || 
             movie->rgba_data.size() != movie->current_video_frame.width * movie->current_video_frame.height * 4) {
             convertYUVtoRGBA(movie->current_video_frame, movie->rgba_data);
         }
-        return movie->rgba_data.data();
+        // Copy RGBA data to the provided bitmap buffer
+        memcpy(bitmap, movie->rgba_data.data(), movie->rgba_data.size());
     }
-    
-    return movie->empty;
 }
 
 // Core texture creation function
-static int newMovieTexture(lua_State *L) {
+int newMovieTexture(lua_State *L) {
     H264MovieTexture *movie = new H264MovieTexture;
     
     const char *path = lua_tostring(L, 1);
