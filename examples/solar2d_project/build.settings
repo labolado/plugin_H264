@@ -1,38 +1,59 @@
--- Build Settings for H.264 Plugin Example
-settings = {
-    
-    orientation = {
+-- Updated build.settings for H.264 plugin development
+settings =
+{
+    orientation =
+    {
         default = "portrait",
         supported = { "portrait", "portraitUpsideDown" }
     },
     
-    android = {
-        usesPermissions = {
+    -- Exclude unnecessary files from build
+    excludeFiles =
+    {
+        all = { ".DS_Store", "*.bak", "*.psd", ".git", ".gitignore", ".cache", "*.md" },
+        android = { "LaunchScreen.storyboardc", "Images.xcassets/*.*" },
+    },
+    
+    -- Plugin configuration
+    plugins =
+    {
+        ["plugin.h264"] =
+        {
+            publisherId = "com.yourcompany",
+            supportedPlatforms = 
+            {
+                macos = true,
+                win32 = true,
+                -- iOS and Android will be added when available
+                -- ios = { url = "https://github.com/labolado/plugin_H264/releases/download/v1.0.0/plugin-h264-ios.tar.gz" },
+                -- android = { url = "https://github.com/labolado/plugin_H264/releases/download/v1.0.0/plugin-h264-android.tar.gz" },
+            }
+        },
+    },
+    
+    -- iOS specific settings
+    iphone =
+    {
+        xcassets = "Images.xcassets",
+        plist =
+        {
+            UIStatusBarHidden = false,
+            UILaunchStoryboardName = "LaunchScreen",
+            
+            -- Media access permissions (if needed)
+            NSPhotoLibraryUsageDescription = "This app accesses photos for video playback examples.",
+            NSMicrophoneUsageDescription = "This app may access microphone for video recording features.",
+        },
+    },
+    
+    -- Android specific settings  
+    android =
+    {
+        usesPermissions =
+        {
             "android.permission.INTERNET",
             "android.permission.WRITE_EXTERNAL_STORAGE",
             "android.permission.READ_EXTERNAL_STORAGE",
         },
     },
-    
-    iphone = {
-        xcassets = "Images.xcassets",
-        plist = {
-            UIStatusBarHidden = false,
-            UILaunchStoryboardName = "LaunchScreen",
-        },
-    },
-    
-    -- Plugin configuration
-    plugins = {
-        ["plugin.h264"] = {
-            publisherId = "com.yourcompany",
-            supportedPlatforms = { 
-                iphone = true, 
-                android = true,
-                macos = true,
-                win32 = true 
-            }
-        },
-    },
-    
 }

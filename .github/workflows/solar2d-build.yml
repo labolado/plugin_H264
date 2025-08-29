@@ -1,0 +1,222 @@
+name: Build Solar2D Plugin Package
+
+on:
+  push:
+    branches: [ master, main, develop ]
+  pull_request:
+    branches: [ master, main ]
+  release:
+    types: [ created ]
+
+jobs:
+  # macOS Build (supports both macOS and iOS)
+  build-macos:
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: recursive
+        
+    - name: Install dependencies
+      run: |
+        brew install lua pkg-config cmake
+        
+    - name: Build dependencies
+      run: |
+        # Build OpenH264
+        cd third_party/openh264
+        make -j$(nproc) PREFIX=/usr/local
+        sudo make install PREFIX=/usr/local
+        
+        # Build FDK-AAC  
+        cd ../fdk-aac
+        mkdir -p build && cd build
+        cmake .. -DCMAKE_BUILD_TYPE=Release
+        make -j$(nproc)
+        
+    - name: Build Plugin for macOS Simulator
+      run: |
+        mkdir build && cd build
+        cmake .. -DCMAKE_BUILD_TYPE=Release \
+                 -DLUA_LIBRARIES=$(brew --prefix lua)/lib/liblua.dylib \
+                 -DLUA_INCLUDE_DIRS=$(brew --prefix lua)/include/lua5.4
+        make -j$(nproc)
+        
+        # Package for Solar2D
+        mkdir -p ../plugins/2020.3620/mac-sim
+        cp libplugin_h264_static.a ../plugins/2020.3620/mac-sim/libplugin_h264.a
+        
+    - name: Run Tests
+      run: |
+        export DYLD_LIBRARY_PATH="./third_party/openh264:./third_party/fdk-aac/build:$DYLD_LIBRARY_PATH"
+        ./tests/run_tests.sh
+        
+    # TODO: Add iOS builds when we have proper iOS project structure
+    # - name: Build for iOS Device
+    #   run: |
+    #     # Would need Xcode project setup similar to the example
+        
+    - name: Upload macOS Plugin Package
+      uses: actions/upload-artifact@v4
+      with:
+        name: plugin-h264-solar2d-macos
+        path: |
+          plugins/2020.3620/mac-sim/
+          examples/solar2d_project/
+
+  # Linux Build  
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: recursive
+        
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential cmake pkg-config liblua5.4-dev lua5.4
+        
+    - name: Build dependencies
+      run: |
+        # Build OpenH264
+        cd third_party/openh264
+        make -j$(nproc)
+        sudo make install PREFIX=/usr/local
+        sudo ldconfig
+        
+        # Build FDK-AAC
+        cd ../fdk-aac
+        mkdir -p build && cd build
+        cmake .. -DCMAKE_BUILD_TYPE=Release
+        make -j$(nproc)
+        
+    - name: Build Plugin
+      run: |
+        mkdir build && cd build
+        cmake .. -DCMAKE_BUILD_TYPE=Release
+        make -j$(nproc)
+        
+    - name: Run Tests
+      run: |
+        export LD_LIBRARY_PATH="./third_party/openh264:./third_party/fdk-aac/build:$LD_LIBRARY_PATH"
+        ./tests/run_tests.sh
+        
+    - name: Upload Linux Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: plugin-h264-linux
+        path: |
+          build/libplugin_h264.so
+          build/libplugin_h264_static.a
+
+  # Windows Build
+  build-windows:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: recursive
+        
+    - name: Setup MSVC
+      uses: microsoft/setup-msbuild@v2
+      
+    - name: Install Lua
+      run: |
+        choco install lua --version 5.4.2
+        
+    - name: Build Plugin
+      run: |
+        mkdir build && cd build
+        cmake .. -DCMAKE_BUILD_TYPE=Release -G "Visual Studio 17 2022" -A x64
+        cmake --build . --config Release
+        
+        # Package for Solar2D Windows Simulator
+        mkdir -p ../plugins/2020.3620/win32-sim
+        cp Release/plugin_h264_static.lib ../plugins/2020.3620/win32-sim/libplugin_h264.lib
+        
+    - name: Upload Windows Plugin Package
+      uses: actions/upload-artifact@v4
+      with:
+        name: plugin-h264-solar2d-windows
+        path: |
+          plugins/2020.3620/win32-sim/
+          examples/solar2d_project/
+
+  # Create Solar2D Plugin Release Package
+  package-solar2d-plugin:
+    if: github.event_name == 'release'
+    needs: [build-macos, build-linux, build-windows]
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+      
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+      
+    - name: Create Solar2D Plugin Package
+      run: |
+        mkdir -p solar2d-plugin-package/plugins/2020.3620
+        
+        # Copy metadata files
+        cp -r plugins/2020.3620/* solar2d-plugin-package/plugins/2020.3620/
+        
+        # Copy platform-specific binaries
+        if [ -d "plugin-h264-solar2d-macos" ]; then
+          cp -r plugin-h264-solar2d-macos/* solar2d-plugin-package/plugins/2020.3620/mac-sim/
+        fi
+        
+        if [ -d "plugin-h264-solar2d-windows" ]; then
+          cp -r plugin-h264-solar2d-windows/* solar2d-plugin-package/plugins/2020.3620/win32-sim/
+        fi
+        
+        # Copy example project
+        cp -r plugin-h264-solar2d-macos/examples solar2d-plugin-package/ 2>/dev/null || true
+        
+        # Create installation instructions
+        cat > solar2d-plugin-package/README.md << 'EOF'
+# Solar2D H.264 Video Plugin
+
+## Installation
+
+1. Extract this package to your Solar2D plugins directory
+2. Add to your `build.settings`:
+
+```lua
+plugins = {
+  ["plugin.h264"] = {
+    publisherId = "com.yourcompany",
+    supportedPlatforms = {
+      macos = true,
+      win32 = true,
+      -- ios = true,     -- Coming soon
+      -- android = true, -- Coming soon
+    }
+  }
+}
+```
+
+## Usage
+
+See the `examples/` directory for a complete Solar2D project example.
+
+## Supported Platforms
+
+- ✅ macOS Simulator
+- ✅ Windows Simulator  
+- 🚧 iOS (planned)
+- 🚧 Android (planned)
+EOF
+        
+        # Create tarball
+        tar -czf plugin-h264-solar2d.tar.gz solar2d-plugin-package/
+        
+    - name: Upload to Release
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: ./plugin-h264-solar2d.tar.gz
+        asset_name: plugin-h264-solar2d.tar.gz
+        asset_content_type: application/gzip
