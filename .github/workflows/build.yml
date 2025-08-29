@@ -1,0 +1,233 @@
+name: Build and Test H.264 Plugin
+
+on:
+  push:
+    branches: [ master, main, develop ]
+  pull_request:
+    branches: [ master, main ]
+  release:
+    types: [ created ]
+
+jobs:
+  # macOS Build
+  build-macos:
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: recursive
+        
+    - name: Install dependencies
+      run: |
+        brew install lua pkg-config cmake
+        
+    - name: Build OpenH264
+      run: |
+        cd third_party/openh264
+        make -j$(nproc) PREFIX=/usr/local
+        sudo make install PREFIX=/usr/local
+        
+    - name: Build FDK-AAC  
+      run: |
+        cd third_party/fdk-aac
+        mkdir -p build && cd build
+        cmake .. -DCMAKE_BUILD_TYPE=Release
+        make -j$(nproc)
+        
+    - name: Configure CMake
+      run: |
+        mkdir build && cd build
+        cmake .. -DCMAKE_BUILD_TYPE=Release \
+                 -DLUA_LIBRARIES=$(brew --prefix lua)/lib/liblua.dylib \
+                 -DLUA_INCLUDE_DIRS=$(brew --prefix lua)/include/lua5.4
+        
+    - name: Build Plugin
+      run: |
+        cd build
+        make -j$(nproc)
+        
+    - name: Run Tests
+      run: |
+        export DYLD_LIBRARY_PATH="./third_party/openh264:./third_party/fdk-aac/build:$DYLD_LIBRARY_PATH"
+        ./tests/run_tests.sh
+        
+    - name: Upload macOS Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: plugin-h264-macos
+        path: |
+          build/libplugin_h264.dylib
+          build/libplugin_h264_static.a
+          examples/
+
+  # Linux Build
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: recursive
+        
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential cmake pkg-config liblua5.4-dev lua5.4
+        
+    - name: Build OpenH264
+      run: |
+        cd third_party/openh264
+        make -j$(nproc)
+        sudo make install PREFIX=/usr/local
+        sudo ldconfig
+        
+    - name: Build FDK-AAC
+      run: |
+        cd third_party/fdk-aac
+        mkdir -p build && cd build
+        cmake .. -DCMAKE_BUILD_TYPE=Release
+        make -j$(nproc)
+        
+    - name: Configure CMake
+      run: |
+        mkdir build && cd build
+        cmake .. -DCMAKE_BUILD_TYPE=Release
+        
+    - name: Build Plugin
+      run: |
+        cd build
+        make -j$(nproc)
+        
+    - name: Run Tests
+      run: |
+        export LD_LIBRARY_PATH="./third_party/openh264:./third_party/fdk-aac/build:$LD_LIBRARY_PATH"
+        ./tests/run_tests.sh
+        
+    - name: Upload Linux Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: plugin-h264-linux
+        path: |
+          build/libplugin_h264.so
+          build/libplugin_h264_static.a
+          examples/
+
+  # Windows Build
+  build-windows:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: recursive
+        
+    - name: Setup MSVC
+      uses: microsoft/setup-msbuild@v2
+      
+    - name: Install Lua
+      run: |
+        choco install lua --version 5.4.2
+        
+    - name: Build OpenH264
+      run: |
+        cd third_party/openh264
+        msbuild codec/build/win32/enc/console/encConsole.vcxproj /p:Configuration=Release /p:Platform=x64
+        
+    - name: Build FDK-AAC
+      run: |
+        cd third_party/fdk-aac
+        mkdir build && cd build
+        cmake .. -DCMAKE_BUILD_TYPE=Release -G "Visual Studio 17 2022" -A x64
+        cmake --build . --config Release
+        
+    - name: Configure CMake
+      run: |
+        mkdir build && cd build
+        cmake .. -DCMAKE_BUILD_TYPE=Release -G "Visual Studio 17 2022" -A x64
+        
+    - name: Build Plugin
+      run: |
+        cd build
+        cmake --build . --config Release
+        
+    - name: Upload Windows Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: plugin-h264-windows
+        path: |
+          build/Release/plugin_h264.dll
+          build/Release/plugin_h264_static.lib
+          examples/
+
+  # Android Build (NDK)
+  build-android:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: recursive
+        
+    - name: Setup Android NDK
+      uses: nttld/setup-ndk@v1
+      with:
+        ndk-version: r25c
+        
+    - name: Build for Android ARM64
+      run: |
+        export ANDROID_NDK_ROOT=$ANDROID_NDK_LATEST_HOME
+        mkdir build-android && cd build-android
+        cmake .. -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK_ROOT/build/cmake/android.toolchain.cmake \
+                 -DANDROID_ABI=arm64-v8a \
+                 -DANDROID_PLATFORM=android-21 \
+                 -DCMAKE_BUILD_TYPE=Release
+        make -j$(nproc)
+        
+    - name: Upload Android Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: plugin-h264-android
+        path: |
+          build-android/libplugin_h264.so
+          build-android/libplugin_h264_static.a
+
+  # Create Release
+  release:
+    if: github.event_name == 'release'
+    needs: [build-macos, build-linux, build-windows, build-android]
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+      
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+      
+    - name: Create release package
+      run: |
+        mkdir -p release-package
+        
+        # Package macOS
+        mkdir -p release-package/macos
+        cp -r plugin-h264-macos/* release-package/macos/
+        
+        # Package Linux  
+        mkdir -p release-package/linux
+        cp -r plugin-h264-linux/* release-package/linux/
+        
+        # Package Windows
+        mkdir -p release-package/windows
+        cp -r plugin-h264-windows/* release-package/windows/
+        
+        # Package Android
+        mkdir -p release-package/android
+        cp -r plugin-h264-android/* release-package/android/
+        
+        # Create archive
+        tar -czf plugin-h264-all-platforms.tar.gz release-package/
+        
+    - name: Upload to Release
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: ./plugin-h264-all-platforms.tar.gz
+        asset_name: plugin-h264-all-platforms.tar.gz
+        asset_content_type: application/gzip
