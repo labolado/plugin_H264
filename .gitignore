@@ -12,6 +12,7 @@ cmake-build-*/
 *.lib
 *.pdb
 *.exe
+.claude
 
 # IDE files
 .vscode/

@@ -1,0 +1,38 @@
+-- Build Settings for H.264 Plugin Example
+settings = {
+    
+    orientation = {
+        default = "portrait",
+        supported = { "portrait", "portraitUpsideDown" }
+    },
+    
+    android = {
+        usesPermissions = {
+            "android.permission.INTERNET",
+            "android.permission.WRITE_EXTERNAL_STORAGE",
+            "android.permission.READ_EXTERNAL_STORAGE",
+        },
+    },
+    
+    iphone = {
+        xcassets = "Images.xcassets",
+        plist = {
+            UIStatusBarHidden = false,
+            UILaunchStoryboardName = "LaunchScreen",
+        },
+    },
+    
+    -- Plugin configuration
+    plugins = {
+        ["plugin.h264"] = {
+            publisherId = "com.yourcompany",
+            supportedPlatforms = { 
+                iphone = true, 
+                android = true,
+                macos = true,
+                win32 = true 
+            }
+        },
+    },
+    
+}

@@ -34,6 +34,8 @@ include_directories(
     ${FDKAAC_DIR}/libAACdec/include
     ${FDKAAC_DIR}/libSYS/include
     ${MINIMP4_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/lua
+    ${LUA_INCLUDE_DIRS}
 )
 
 # 查找OpenH264库
@@ -50,6 +52,25 @@ find_library(FDKAAC_LIBRARY
     NO_DEFAULT_PATH
 )
 
+# 查找Lua库
+find_package(PkgConfig QUIET)
+if(PKG_CONFIG_FOUND)
+    pkg_check_modules(LUA lua5.4 lua)
+endif()
+
+if(NOT LUA_FOUND)
+    find_library(LUA_LIBRARIES
+        NAMES liblua.dylib liblua5.4.dylib lua5.4 lua54 lua
+        PATHS /opt/homebrew/lib /usr/local/lib /usr/lib
+    )
+    find_path(LUA_INCLUDE_DIRS
+        NAMES lua.h
+        PATHS /opt/homebrew/include/lua /opt/homebrew/include/lua5.4 
+              /usr/local/include/lua5.4 /usr/local/include/lua
+              /usr/include/lua5.4 /usr/include/lua
+    )
+endif()
+
 # 源文件
 set(PLUGIN_SOURCES
     src/decoders/H264Decoder.cpp
@@ -59,6 +80,8 @@ set(PLUGIN_SOURCES
     src/managers/H264Movie.cpp
     src/utils/ErrorHandler.cpp
     src/utils/MiniMP4Implementation.cpp
+    src/lua/PluginLuaBinding.cpp
+    src/lua/CoronaLua.cpp
 )
 
 # 头文件
@@ -70,15 +93,19 @@ set(PLUGIN_HEADERS
     include/managers/H264Movie.h
     include/utils/ErrorHandler.h
     include/utils/Common.h
+    include/lua/PluginLuaBinding.h
+    include/lua/CoronaLua.h
+    include/lua/CoronaMacros.h
+    include/lua/CoronaEvent.h
 )
 
 # 创建静态库
 add_library(plugin_h264_static STATIC ${PLUGIN_SOURCES} ${PLUGIN_HEADERS})
-target_link_libraries(plugin_h264_static ${OPENH264_LIBRARY} ${FDKAAC_LIBRARY})
+target_link_libraries(plugin_h264_static ${OPENH264_LIBRARY} ${FDKAAC_LIBRARY} ${LUA_LIBRARIES})
 
 # 创建动态库 (用于Solar2D插件)
 add_library(plugin_h264 SHARED ${PLUGIN_SOURCES} ${PLUGIN_HEADERS})
-target_link_libraries(plugin_h264 ${OPENH264_LIBRARY} ${FDKAAC_LIBRARY})
+target_link_libraries(plugin_h264 ${OPENH264_LIBRARY} ${FDKAAC_LIBRARY} ${LUA_LIBRARIES})
 
 # 测试选项
 option(ENABLE_TESTING "Enable unit tests" ON)
