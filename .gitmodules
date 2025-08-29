@@ -1,0 +1,9 @@
+[submodule "third_party/openh264"]
+	path = third_party/openh264
+	url = https://github.com/cisco/openh264.git
+[submodule "third_party/fdk-aac"]
+	path = third_party/fdk-aac
+	url = https://github.com/mstorsjo/fdk-aac.git
+[submodule "third_party/minimp4"]
+	path = third_party/minimp4
+	url = https://github.com/lieff/minimp4.git

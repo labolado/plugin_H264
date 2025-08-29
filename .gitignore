@@ -1,0 +1,40 @@
+# Build directories
+build/
+cmake-build-*/
+
+# Compiled binaries
+*.o
+*.obj
+*.so
+*.dylib
+*.dll
+*.a
+*.lib
+*.pdb
+*.exe
+
+# IDE files
+.vscode/
+.idea/
+*.xcodeproj/
+*.xcworkspace/
+*.sln
+*.vcxproj*
+
+# OS specific
+.DS_Store
+Thumbs.db
+
+# Test output
+test_results/
+coverage.info
+*.gcda
+*.gcno
+
+# Temporary files
+*.tmp
+*.temp
+*~
+
+# Logs
+*.log
