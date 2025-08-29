@@ -21,6 +21,9 @@ if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
 endif()
 
+# 编译选项
+option(STANDALONE_BUILD "Build standalone version with Corona compatibility layer" ON)
+
 # 第三方库路径
 set(THIRD_PARTY_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third_party)
 set(OPENH264_DIR ${THIRD_PARTY_DIR}/openh264)
@@ -80,9 +83,16 @@ set(PLUGIN_SOURCES
     src/managers/H264Movie.cpp
     src/utils/ErrorHandler.cpp
     src/utils/MiniMP4Implementation.cpp
-    src/lua/PluginLuaBinding.cpp
-    src/lua/CoronaLua.cpp
+    src/lua/H264TextureBinding.cpp
 )
+
+# 添加Corona兼容层（仅用于独立测试）
+if(STANDALONE_BUILD)
+    list(APPEND PLUGIN_SOURCES src/lua/CoronaMinimal.cpp)
+    message(STATUS "Building standalone version with Corona compatibility layer")
+else()
+    message(STATUS "Building Solar2D deployment version (requires Solar2D runtime)")
+endif()
 
 # 头文件
 set(PLUGIN_HEADERS
@@ -93,10 +103,7 @@ set(PLUGIN_HEADERS
     include/managers/H264Movie.h
     include/utils/ErrorHandler.h
     include/utils/Common.h
-    include/lua/PluginLuaBinding.h
-    include/lua/CoronaLua.h
-    include/lua/CoronaMacros.h
-    include/lua/CoronaEvent.h
+    include/lua/H264TextureBinding.h
 )
 
 # 创建静态库

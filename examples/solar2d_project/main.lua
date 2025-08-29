@@ -1,20 +1,11 @@
 -- H.264 Video Plugin Example for Solar2D
--- This example demonstrates how to use the H.264 video plugin
+-- This example demonstrates how to use the H.264 video plugin (plugin_movie compatible API)
 
 -- Import the plugin
 local h264 = require("plugin.h264")
 
 print("H.264 Plugin Example for Solar2D")
 print("================================")
-
--- Display plugin information
-print("Plugin Version:", h264.getVersion())
-local libInfo = h264.getLibraryInfo()
-print("Libraries:")
-for k, v in pairs(libInfo) do
-    print(" -", k .. ":", v)
-end
-print()
 
 -- Create display objects
 local display = require("display")
@@ -46,6 +37,9 @@ local statusText = display.newText({
 })
 statusText:setFillColor(0.8, 0.8, 0.8)
 
+-- Video display object (will replace placeholder when loaded)
+local movieRect = nil
+
 -- Video placeholder
 local videoPlaceholder = display.newRect(display.contentCenterX, 200, 300, 200)
 videoPlaceholder:setFillColor(0.1, 0.1, 0.1)
@@ -61,41 +55,6 @@ local placeholderText = display.newText({
     align = "center"
 })
 placeholderText:setFillColor(0.6, 0.6, 0.6)
-
--- Create movie object
-local movie = h264.newMovie()
-
--- Event listener for video events
-local function onVideoEvent(event)
-    print("Video Event:", event.type, "Phase:", event.phase)
-    
-    if event.phase == "loaded" then
-        statusText.text = "Video loaded successfully"
-        statusText:setFillColor(0, 1, 0)
-        placeholderText.text = "Video Ready\\n" .. 
-                              "Duration: " .. math.floor(movie:getDuration()) .. "s"
-        
-    elseif event.phase == "play" then
-        statusText.text = "Playing video"
-        statusText:setFillColor(0, 0.8, 1)
-        
-    elseif event.phase == "pause" then
-        statusText.text = "Video paused"
-        statusText:setFillColor(1, 1, 0)
-        
-    elseif event.phase == "stop" then
-        statusText.text = "Video stopped"
-        statusText:setFillColor(0.8, 0.8, 0.8)
-        
-    elseif event.phase == "error" then
-        statusText.text = "Error: " .. (event.message or "Unknown error")
-        statusText:setFillColor(1, 0, 0)
-        print("Video Error:", event.message)
-    end
-end
-
--- Add event listener
-movie:addEventListener("videoEvent", onVideoEvent)
 
 -- Control buttons
 local buttonY = 350
@@ -115,8 +74,29 @@ local loadButton = widget.newButton({
         local videoPath = "sample_video.mp4"  -- Place this file in your project
         print("Attempting to load:", videoPath)
         
-        local success = movie:loadVideo(videoPath)
-        if not success then
+        -- Remove old movie if exists
+        if movieRect then
+            movieRect:removeSelf()
+            movieRect = nil
+        end
+        
+        -- Create new movie display object using plugin_movie compatible API
+        movieRect = h264.newMovieRect({
+            filename = videoPath,
+            width = 300,
+            height = 200,
+            x = display.contentCenterX,
+            y = 200
+        })
+        
+        if movieRect then
+            statusText.text = "Video loaded successfully"
+            statusText:setFillColor(0, 1, 0)
+            placeholderText.text = "Video Ready"
+            -- Hide placeholder
+            videoPlaceholder.isVisible = false
+            placeholderText.isVisible = false
+        else
             statusText.text = "Failed to load video file"
             statusText:setFillColor(1, 0, 0)
         end
@@ -132,9 +112,12 @@ local playButton = widget.newButton({
     height = 30,
     fontSize = 12,
     onRelease = function()
-        local success = movie:play()
-        if not success then
-            statusText.text = "Failed to start playback"
+        if movieRect and movieRect.play then
+            movieRect:play()
+            statusText.text = "Playing video"
+            statusText:setFillColor(0, 0.8, 1)
+        else
+            statusText.text = "No video loaded"
             statusText:setFillColor(1, 0.5, 0)
         end
     end
@@ -149,7 +132,11 @@ local pauseButton = widget.newButton({
     height = 30,
     fontSize = 12,
     onRelease = function()
-        movie:pause()
+        if movieRect and movieRect.pause then
+            movieRect:pause()
+            statusText.text = "Video paused"
+            statusText:setFillColor(1, 1, 0)
+        end
     end
 })
 
@@ -162,55 +149,28 @@ local stopButton = widget.newButton({
     height = 30,
     fontSize = 12,
     onRelease = function()
-        movie:stop()
-        placeholderText.text = "Video Display Area\\n(Stopped)"
-    end
-})
-
--- Time display
-local timeText = display.newText({
-    text = "00:00 / 00:00",
-    x = display.contentCenterX,
-    y = 400,
-    font = native.systemFont,
-    fontSize = 14
-})
-timeText:setFillColor(0.9, 0.9, 0.9)
-
--- Update time display
-local function updateTime()
-    if movie then
-        local current = movie:getCurrentTime()
-        local duration = movie:getDuration()
-        
-        local currentMin = math.floor(current / 60)
-        local currentSec = math.floor(current % 60)
-        local durationMin = math.floor(duration / 60)
-        local durationSec = math.floor(duration % 60)
-        
-        timeText.text = string.format("%02d:%02d / %02d:%02d", 
-                                     currentMin, currentSec, durationMin, durationSec)
-        
-        -- Update placeholder with playback info if playing
-        if movie:isPlaying() and duration > 0 then
-            local progress = math.floor((current / duration) * 100)
-            placeholderText.text = string.format("Playing Video\\nProgress: %d%%", progress)
+        if movieRect then
+            movieRect:removeSelf()
+            movieRect = nil
+            statusText.text = "Video stopped"
+            statusText:setFillColor(0.8, 0.8, 0.8)
+            -- Show placeholder again
+            videoPlaceholder.isVisible = true
+            placeholderText.isVisible = true
+            placeholderText.text = "Video Display Area\n(Stopped)"
         end
     end
-end
-
--- Timer to update time display
-timer.performWithDelay(1000, updateTime, 0)
+})
 
 -- Instructions
 local instructions = display.newText({
-    text = "Instructions:\\n" ..
-           "1. Place a sample_video.mp4 file in your project directory\\n" ..
-           "2. Click 'Load Video' to load the video\\n" ..
-           "3. Use Play/Pause/Stop buttons to control playback\\n\\n" ..
+    text = "Instructions:\n" ..
+           "1. Place a sample_video.mp4 file in your project directory\n" ..
+           "2. Click 'Load Video' to load the video\n" ..
+           "3. Use Play/Pause/Stop buttons to control playback\n\n" ..
            "Supported formats: MP4 with H.264 video and AAC audio",
     x = display.contentCenterX,
-    y = 500,
+    y = 450,
     width = 350,
     font = native.systemFont,
     fontSize = 10,
@@ -221,9 +181,9 @@ instructions:setFillColor(0.7, 0.7, 0.7)
 -- Cleanup on app exit
 local function onSystemEvent(event)
     if event.type == "applicationExit" then
-        if movie then
-            movie:removeEventListener("videoEvent", onVideoEvent)
-            movie:stop()
+        if movieRect then
+            movieRect:removeSelf()
+            movieRect = nil
         end
     end
 end
@@ -231,4 +191,4 @@ end
 Runtime:addEventListener("system", onSystemEvent)
 
 print("Solar2D H.264 Video Plugin Example loaded successfully!")
-print("Ready to load and play H.264 videos.")
+print("Ready to load and play H.264 videos using plugin_movie compatible API.")

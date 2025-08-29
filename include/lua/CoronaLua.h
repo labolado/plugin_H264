@@ -5,8 +5,8 @@
 extern "C" {
 #endif
 
-#include "/opt/homebrew/include/lua5.4/lua.h"
-#include "/opt/homebrew/include/lua5.4/lauxlib.h"
+#include <lua.h>
+#include <lauxlib.h>
 
 // Corona Lua引用类型
 typedef int CoronaLuaRef;
