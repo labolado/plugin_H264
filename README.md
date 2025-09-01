@@ -109,39 +109,138 @@ local h264 = require("plugin.h264")
 -- Create movie texture directly
 local texture = h264.newMovieTexture({
     filename = "video.mp4",
-    audioSource = audioSource  -- Optional OpenAL source
+    channel = 1  -- Audio channel (auto-assigned if not provided)
 })
 
--- Create display object with the texture
-local rect = display.newImageRect(texture.filename, texture.baseDir, 320, 240)
-rect.texture = texture
-
--- Runtime update loop
+-- Runtime update loop (automatic in newMovieRect)
 local function onEnterFrame(event)
-    if rect.texture then
-        rect.texture:update(event.frame)
-        rect.texture:invalidate()
+    if texture then
+        texture:update(event.time - (prevTime or 0))  -- Pass delta time
+        texture:invalidate()
+        prevTime = event.time
     end
 end
 Runtime:addEventListener("enterFrame", onEnterFrame)
 ```
 
-## API Reference
+## Complete API Reference
 
-### h264.newMovieRect(options)
+### Main Functions
 
-Creates a Solar2D display object with video texture.
+#### `h264.newMovieRect(options)`
+Creates a complete movie display object (plugin_movie compatible).
 
 **Parameters:**
-- `options` (table): Configuration options
-  - `filename` (string): Path to video file
-  - `width` (number): Display width
-  - `height` (number): Display height  
-  - `x` (number): X position
-  - `y` (number): Y position
-  - `audioSource` (number, optional): OpenAL audio source ID
+- `filename` (string): Path to H.264 video file
+- `width` (number): Display width
+- `height` (number): Display height  
+- `x` (number, optional): X position
+- `y` (number, optional): Y position
+- `channel` (number, optional): Audio channel
+- `listener` (function, optional): Event listener for movie events
 
-**Returns:** Display object with video texture
+**Returns:** Display object with movie control methods
+
+#### `h264.newMovieTexture(options)`
+Creates the underlying texture object for advanced use.
+
+**Parameters:**
+- `filename` (string): Path to H.264 video file
+- `channel` (number, optional): Audio channel
+
+**Returns:** Texture object with control methods
+
+### Movie Control Methods
+
+#### `movie:play()`
+Starts or resumes video playback.
+
+#### `movie:pause()` 
+Pauses video playback.
+
+#### `movie:stop()`
+Stops playback and resets to beginning.
+
+#### `movie:update(deltaTime)`
+Updates video/audio by delta time (milliseconds). Called automatically by runtime.
+
+### Movie Properties
+
+#### `movie.isActive` (boolean, read-only)
+Returns `true` if the movie is still decoding or has buffered audio.
+
+#### `movie.isPlaying` (boolean, read-only) 
+Returns `true` if the movie is currently playing.
+
+#### `movie.currentTime` (number, read-only)
+Returns current playback time in seconds.
+
+### Event Handling
+
+```lua
+local function movieListener(event)
+    if event.name == "movie" then
+        if event.phase == "stopped" then
+            print("Movie stopped, completed:", event.completed)
+        elseif event.phase == "loop" then
+            print("Movie loop iteration:", event.iterations)
+        end
+    end
+end
+
+local movie = h264.newMovieRect({
+    filename = "video.mp4",
+    width = 320, height = 240,
+    listener = movieListener
+})
+```
+
+### Advanced Features
+
+#### Loop Videos
+```lua
+local loopMovie = h264.newMovieLoop({
+    filename = "video.mp4",
+    width = 320, height = 240,
+    channel1 = 1, channel2 = 2,  -- Dual audio channels for seamless looping
+    listener = movieListener
+})
+```
+
+## Technical Implementation
+
+### Core Features
+- **Full plugin_movie API Compatibility**: Drop-in replacement with identical API
+- **H.264 Hardware Decoding**: Uses OpenH264 for efficient video decoding  
+- **AAC Audio Support**: FDK-AAC for high-quality audio playback
+- **OpenAL Audio Streaming**: Professional audio streaming with buffer management
+- **Solar2D Integration**: Native texture objects with CoronaExternalTexture API
+- **Memory Safe**: Complete resource cleanup with no memory leaks
+
+### Architecture
+- **Dynamic Method Provision**: Uses onGetField callback mechanism for API methods
+- **Audio/Video Synchronization**: Frame-accurate timing with delta time updates  
+- **YUV to RGBA Conversion**: Efficient color space conversion for display
+- **OpenAL Buffer Management**: Multi-buffer streaming for smooth audio playback
+- **Cross-Platform**: macOS, iOS, Android support via CMake build system
+
+### Performance Optimizations
+- **Lazy Frame Conversion**: RGBA data generated only when needed
+- **Buffer Recycling**: OpenAL buffers reused for efficient streaming
+- **Smart Memory Management**: std::vector automatic memory management
+- **Texture Caching**: Automatic texture invalidation on frame updates
+
+### Build Requirements
+- **OpenH264**: Open source H.264 codec library
+- **FDK-AAC**: Fraunhofer AAC codec library  
+- **OpenAL**: Audio streaming framework (system framework on macOS)
+- **Lua 5.4**: Scripting interface
+- **CMake 3.15+**: Cross-platform build system
+
+### Compatibility Notes
+- **100% plugin_movie Compatible**: All 7 API methods identical
+- **Solar2D 2020.3620+**: Full Solar2D plugin directory structure
+- **GitHub Actions Ready**: Automated build and release pipeline
 
 **Methods:**
 - `object:play()`: Start video playback
