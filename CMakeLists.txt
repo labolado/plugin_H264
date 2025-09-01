@@ -74,6 +74,17 @@ if(NOT LUA_FOUND)
     )
 endif()
 
+# 查找OpenAL框架（macOS系统框架）
+if(APPLE)
+    find_library(OPENAL_LIBRARY OpenAL)
+    if(NOT OPENAL_LIBRARY)
+        message(FATAL_ERROR "OpenAL framework not found")
+    endif()
+else()
+    find_package(OpenAL REQUIRED)
+    set(OPENAL_LIBRARY ${OPENAL_LIBRARY})
+endif()
+
 # 源文件
 set(PLUGIN_SOURCES
     src/decoders/H264Decoder.cpp
@@ -108,11 +119,11 @@ set(PLUGIN_HEADERS
 
 # 创建静态库
 add_library(plugin_h264_static STATIC ${PLUGIN_SOURCES} ${PLUGIN_HEADERS})
-target_link_libraries(plugin_h264_static ${OPENH264_LIBRARY} ${FDKAAC_LIBRARY} ${LUA_LIBRARIES})
+target_link_libraries(plugin_h264_static ${OPENH264_LIBRARY} ${FDKAAC_LIBRARY} ${LUA_LIBRARIES} ${OPENAL_LIBRARY})
 
 # 创建动态库 (用于Solar2D插件)
 add_library(plugin_h264 SHARED ${PLUGIN_SOURCES} ${PLUGIN_HEADERS})
-target_link_libraries(plugin_h264 ${OPENH264_LIBRARY} ${FDKAAC_LIBRARY} ${LUA_LIBRARIES})
+target_link_libraries(plugin_h264 ${OPENH264_LIBRARY} ${FDKAAC_LIBRARY} ${LUA_LIBRARIES} ${OPENAL_LIBRARY})
 
 # 测试选项
 option(ENABLE_TESTING "Enable unit tests" ON)
