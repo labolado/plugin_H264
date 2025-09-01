@@ -28,6 +28,15 @@ using namespace plugin_h264;
 // Number of audio buffers for streaming
 #define NUM_BUFFERS 8
 
+// Forward declarations for texture callback methods
+static int update(lua_State *L);
+static int play(lua_State *L);
+static int pause(lua_State *L);
+static int stop(lua_State *L);
+static int isActive(lua_State *L, void *context);
+static int isPlaying(lua_State *L, void *context);
+static int currentTime(lua_State *L, void *context);
+
 // H264MovieTexture wrapper for Solar2D texture integration  
 struct H264MovieTexture {
     std::unique_ptr<plugin_h264::H264Movie> decoder;
@@ -37,19 +46,19 @@ struct H264MovieTexture {
     // Converted RGBA frame data for Corona texture
     std::vector<uint8_t> rgba_data;
     
-    // Playback state
+    // Playback state - 与plugin_movie字段名完全一致
     bool playing = false;
     bool stopped = false;
-    bool audio_started = false;
-    bool audio_completed = false;
+    bool audiostarted = false;
+    bool audiocompleted = false;
     
-    // Timing
+    // Timing - 与plugin_movie字段名完全一致
     unsigned int elapsed = 0;
-    unsigned int frame_ms = 0;
+    unsigned int framems = 0;
     
-    // Audio (OpenAL integration)
+    // Audio (OpenAL integration) - 与plugin_movie字段名完全一致
     ALuint source = 0;
-    ALenum audio_format = 0;
+    ALenum audioformat = 0;
     ALuint buffers[NUM_BUFFERS];
     
     // Default empty pixel data
@@ -92,6 +101,38 @@ void convertYUVtoRGBA(const plugin_h264::VideoFrame& yuv, std::vector<uint8_t>& 
     }
 }
 
+// Audio streaming functions - 匹配plugin_movie逻辑
+bool startAudioStream(H264MovieTexture *movie) {
+    if (!movie->current_audio_frame.isValid()) return false;
+    
+    ALsizei i;
+    for(i = 0; i < NUM_BUFFERS; i++) {
+        ALsizei size = movie->current_audio_frame.samples.size() * sizeof(int16_t);
+        alBufferData(movie->buffers[i], movie->audioformat, 
+                    movie->current_audio_frame.samples.data(), size, 
+                    movie->current_audio_frame.sample_rate);
+
+        // 获取下一个音频帧
+        if(movie->decoder->hasNewAudioFrame()) {
+            movie->current_audio_frame = movie->decoder->getCurrentAudioFrame();
+        } else {
+            break;
+        }
+    }
+    
+    alSourceQueueBuffers(movie->source, i, movie->buffers);
+    alSourcePlay(movie->source);
+    
+    return true;
+}
+
+void stopAudioStream(H264MovieTexture *movie) {
+    alSourceStop(movie->source);
+    alSourceRewind(movie->source);
+    alSourcei(movie->source, AL_BUFFER, 0);
+    alDeleteBuffers(NUM_BUFFERS, movie->buffers);
+}
+
 // Texture callback implementations
 static unsigned int GetWidth(void *context) {
     H264MovieTexture *movie = (H264MovieTexture*)context;
@@ -115,6 +156,40 @@ static void GetImage(void *context, void *bitmap) {
         // Copy RGBA data to the provided bitmap buffer
         memcpy(bitmap, movie->rgba_data.data(), movie->rgba_data.size());
     }
+}
+
+// CRITICAL: onGetField callback - 动态提供方法，与plugin_movie完全一致
+static int GetField(lua_State *L, const char *field, void *context) {
+    int result = 0;
+    
+    if(strcmp(field, "update") == 0) {
+        lua_pushcfunction(L, update);
+        result = 1;
+    }
+    else if(strcmp(field, "play") == 0) {
+        lua_pushcfunction(L, play);
+        result = 1;
+    }
+    else if(strcmp(field, "pause") == 0) {
+        lua_pushcfunction(L, pause);
+        result = 1;
+    }
+    else if(strcmp(field, "stop") == 0) {
+        lua_pushcfunction(L, stop);
+        result = 1;
+    }
+    else if(strcmp(field, "isActive") == 0)
+        result = isActive(L, context);
+    else if(strcmp(field, "isPlaying") == 0)
+        result = isPlaying(L, context);
+    else if(strcmp(field, "currentTime") == 0)
+        result = currentTime(L, context);
+    
+    return result;
+}
+
+static CoronaExternalBitmapFormat GetFormat(void *context) {
+    return kExternalBitmapFormat_RGBA;
 }
 
 // Core texture creation function
@@ -145,18 +220,208 @@ int newMovieTexture(lua_State *L) {
     alSourcei(movie->source, AL_BUFFER, 0);
     alGenBuffers(NUM_BUFFERS, movie->buffers);
     
-    // Setup Solar2D texture callbacks
+    // Setup Solar2D texture callbacks - 关键：添加onGetField和getFormat
     CoronaExternalTextureCallbacks callbacks = {};
     callbacks.size = sizeof(CoronaExternalTextureCallbacks);
     callbacks.getWidth = GetWidth;
     callbacks.getHeight = GetHeight;
     callbacks.onRequestBitmap = GetImage;
+    callbacks.getFormat = GetFormat;        // 提供RGBA格式信息
+    callbacks.onGetField = GetField;        // 关键：动态提供methods和properties
     callbacks.onFinalize = [](void* context) {
         H264MovieTexture *movie = (H264MovieTexture*)context;
+        
+        // 完整的资源清理 - 匹配plugin_movie的Dispose逻辑
+        if(!movie->stopped) {
+            movie->stopped = true;
+            movie->playing = false;
+            
+            // 停止音频流并清理OpenAL资源
+            if(movie->audiostarted) {
+                stopAudioStream(movie);
+            }
+            
+            // 停止decoder
+            if(movie->decoder) {
+                movie->decoder->stop();
+            }
+        }
+        
+        // 清理动态分配的资源
+        movie->rgba_data.clear();
+        movie->rgba_data.shrink_to_fit();
+        
         delete movie;
     };
     
     return CoronaExternalPushTexture(L, &callbacks, movie);
+}
+
+// 实现所有texture方法 - 与plugin_movie逻辑完全一致
+static int update(lua_State *L) {
+    H264MovieTexture *movie = (H264MovieTexture*)CoronaExternalGetUserData(L, 1);
+    
+    if(movie->playing && movie->decoder) {
+MAINLOOP:
+        unsigned int delta = luaL_checkinteger(L, 2);
+        
+        // 获取音频帧（如果没有）
+        if(!movie->current_audio_frame.isValid()) {
+            movie->current_audio_frame = movie->decoder->getCurrentAudioFrame();
+        }
+        
+        // 获取视频帧（如果没有）
+        if(!movie->current_video_frame.isValid()) {
+            movie->current_video_frame = movie->decoder->getCurrentVideoFrame();
+        }
+        
+        if(delta > 0 && (movie->current_audio_frame.isValid() || movie->current_video_frame.isValid())) {
+            unsigned int currentTime = movie->elapsed + delta;
+            
+            // 音频处理 - 完整逻辑匹配plugin_movie
+            if(movie->current_audio_frame.isValid()) {
+                if(!movie->audioformat) {
+                    movie->audioformat = (movie->current_audio_frame.channels == 1) ? AL_FORMAT_MONO16 : AL_FORMAT_STEREO16;
+                }
+                
+                if(!movie->audiostarted) {
+                    movie->audiostarted = startAudioStream(movie);
+                }
+                
+                ALint state, processed;
+                alGetSourcei(movie->source, AL_SOURCE_STATE, &state);
+                alGetSourcei(movie->source, AL_BUFFERS_PROCESSED, &processed);
+                
+                while(processed > 0) {
+                    ALuint buffID;
+                    alSourceUnqueueBuffers(movie->source, 1, &buffID);
+                    processed--;
+                    
+                    ALsizei size = movie->current_audio_frame.samples.size() * sizeof(int16_t);
+                    alBufferData(buffID, movie->audioformat, 
+                                movie->current_audio_frame.samples.data(), size, 
+                                movie->current_audio_frame.sample_rate);
+                    
+                    alSourceQueueBuffers(movie->source, 1, &buffID);
+                    
+                    // 获取下一个音频帧
+                    if(movie->decoder->hasNewAudioFrame()) {
+                        movie->current_audio_frame = movie->decoder->getCurrentAudioFrame();
+                    } else {
+                        movie->current_audio_frame = AudioFrame(); // 清空
+                        break;
+                    }
+                }
+                
+                if(state == AL_STOPPED) {
+                    if(movie->decoder->hasNewAudioFrame()) {
+                        alSourcePlay(movie->source);
+                    } else {
+                        movie->audiocompleted = true;
+                    }
+                }
+            }
+            
+            // 视频处理 - 帧率控制逻辑
+            if(movie->current_video_frame.isValid()) {
+                if(movie->framems == 0) {
+                    // 从decoder获取帧率，默认30fps
+                    movie->framems = (unsigned int)(1000.0 / 30.0);
+                }
+                
+                while(currentTime >= (movie->current_video_frame.timestamp + movie->framems)) {
+                    if(movie->decoder->hasNewVideoFrame()) {
+                        movie->current_video_frame = movie->decoder->getCurrentVideoFrame();
+                        // 清空RGBA缓存强制重新转换
+                        movie->rgba_data.clear();
+                    } else {
+                        break;
+                    }
+                }
+            }
+            
+            movie->elapsed = currentTime;
+        }
+    }
+    // 处理解码完成后剩余音频
+    else if(movie->audiostarted && !movie->audiocompleted) {
+        // 简化的完成检查
+        if(!movie->decoder || (!movie->decoder->hasNewAudioFrame() && !movie->decoder->hasNewVideoFrame())) {
+            movie->audiocompleted = true;
+        }
+    }
+    
+    return 0;
+}
+
+static int play(lua_State *L) {
+    H264MovieTexture *movie = (H264MovieTexture*)CoronaExternalGetUserData(L, 1);
+    
+    if(!movie->playing) {
+        movie->playing = true;
+        if(movie->audiostarted && !movie->audiocompleted) {
+            alSourcePlay(movie->source);
+        }
+    }
+    
+    return 0;
+}
+
+static int pause(lua_State *L) {
+    H264MovieTexture *movie = (H264MovieTexture*)CoronaExternalGetUserData(L, 1);
+    
+    if(movie->playing) {
+        movie->playing = false;
+        if(movie->audiostarted && !movie->audiocompleted) {
+            alSourcePause(movie->source);
+        }
+    }
+    
+    return 0;
+}
+
+static int stop(lua_State *L) {
+    H264MovieTexture *movie = (H264MovieTexture*)CoronaExternalGetUserData(L, 1);
+    
+    movie->stopped = true;
+    movie->playing = false;
+    
+    // 使用统一的stopAudioStream函数
+    if(movie->audiostarted) {
+        stopAudioStream(movie);
+        movie->audiostarted = false;
+        movie->audiocompleted = true;
+    }
+    
+    // 停止decoder
+    if(movie->decoder) {
+        movie->decoder->stop();
+    }
+    
+    return 0;
+}
+
+static int isActive(lua_State *L, void *context) {
+    H264MovieTexture *movie = (H264MovieTexture*)context;
+    
+    bool active = (movie->audiostarted && !movie->audiocompleted) || 
+                  (movie->decoder && !movie->stopped);
+    lua_pushboolean(L, active);
+    return 1;
+}
+
+static int isPlaying(lua_State *L, void *context) {
+    H264MovieTexture *movie = (H264MovieTexture*)context;
+    
+    lua_pushboolean(L, movie->playing);
+    return 1;
+}
+
+static int currentTime(lua_State *L, void *context) {
+    H264MovieTexture *movie = (H264MovieTexture*)context;
+    
+    lua_pushnumber(L, movie->elapsed * 0.001);
+    return 1;
 }
 
 // Main plugin entry point

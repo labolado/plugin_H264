@@ -1,106 +1,241 @@
--- Plugin H264 - Solar2D Video Plugin
--- Compatible with plugin_movie API
+local Library = require('CoronaLibrary')
 
-local Library = require "CoronaLibrary"
-
--- Create library
-local lib = Library:new{ name="plugin.h264", publisherId="com.plugin", version=1 }
-
--------------------------------------------------------------------------------
--- BEGIN (Insert your implementation starting here)
--------------------------------------------------------------------------------
-
--- This is called when the library is required
-function lib.init()
+local function copy(table)
+    local dst = {}
+    for k, v in pairs(table) do
+        if type(v) == 'table' then
+            dst[k] = copy(v)
+        else
+            dst[k] = v
+        end
+    end
+    return dst
 end
 
--- newMovieTexture creates the underlying texture object
-function lib.newMovieTexture(params)
-    if not params then
-        print("ERROR: plugin.h264.newMovieTexture() requires parameters")
-        return nil
-    end
-    
-    if not params.filename then
-        print("ERROR: plugin.h264.newMovieTexture() requires filename parameter")
-        return nil
-    end
-    
-    -- Get audio source if provided
-    local audioSource = params.audioSource or 0
-    
-    -- Call native function to create texture
-    return lib._newMovieTexture(params.filename, audioSource)
+-- Create stub library
+local lib = Library:new(
+    {
+        name = 'plugin.h264',
+        publisherId = 'com.ansh3ll'
+    }
+)
+
+-- DIY
+function lib.newMovieTexture(opts)
+    local path = system.pathForFile(opts.filename, opts.baseDir or system.ResourceDirectory)
+    local source = audio.getSourceFromChannel(opts.channel or audio.findFreeChannel())
+    return lib._newMovieTexture(path, source, display.fps)
 end
 
--- newMovieRect creates a display object with the movie texture
-function lib.newMovieRect(params)
-    if not params then
-        print("ERROR: plugin.h264.newMovieRect() requires parameters")
-        return nil
-    end
-    
-    -- Create the underlying texture
-    local texture = lib.newMovieTexture(params)
-    if not texture then
-        return nil
-    end
-    
-    -- Create display rect with the texture
-    local rect = display.newImageRect(texture.filename, texture.baseDir, params.width or 320, params.height or 240)
-    if not rect then
-        print("ERROR: Failed to create display object")
-        return nil
-    end
-    
-    -- Attach texture to rect
-    rect.texture = texture
-    
-    -- Add movie control methods
-    rect.play = function(self)
-        if self.texture and self.texture.play then
-            self.texture:play()
-        end
-    end
-    
-    rect.pause = function(self)
-        if self.texture and self.texture.pause then
-            self.texture:pause()
-        end
-    end
-    
-    rect.seek = function(self, time)
-        if self.texture and self.texture.seek then
-            self.texture:seek(time)
-        end
-    end
-    
-    -- Runtime update loop for texture refresh
-    rect._updateListener = function(event)
-        if rect.texture and rect.texture.update then
-            rect.texture:update(event.frame)
+-- Plug-n-play
+function lib.newMovieRect(opts)
+    local texture = lib.newMovieTexture(opts)
+    local rect = display.newImageRect(texture.filename, texture.baseDir, opts.width, opts.height)
+    rect.texture, rect.channel = texture, opts.channel
+    --
+    rect.x, rect.y = opts.x, opts.y
+    rect._preserve = opts.preserve
+    rect.listener = opts.listener
+    --
+    rect._delta = 0
+    rect._stop = false
+    rect.playing = false
+    rect._started = false
+    rect._complete = false
+    --
+    rect.update = function(event)
+        if rect.playing then
+            if rect._prevtime then
+                rect._delta = event.time - rect._prevtime
+            end
+            --
+            rect.texture:update(rect._delta)
             rect.texture:invalidate()
+            --
+            if not rect.texture.isActive then
+                rect._complete = true
+                rect.stop()
+            end
+        end
+        --
+        rect._prevtime = event.time
+    end
+    --
+    rect.play = function()
+        if rect.playing then return end
+        --
+        rect.texture:play()
+        rect.playing = true
+        --
+        if not rect._started then
+            rect._started = true
+            Runtime:addEventListener('enterFrame', rect.update)
         end
     end
-    
-    -- Add to runtime
-    Runtime:addEventListener("enterFrame", rect._updateListener)
-    
-    -- Cleanup on finalize
-    local originalFinalize = rect._finalize
-    rect._finalize = function(self)
-        Runtime:removeEventListener("enterFrame", rect._updateListener)
-        if originalFinalize then
-            originalFinalize(self)
-        end
+    --
+    rect.pause = function()
+        if not rect.playing then return end
+        --
+        rect.playing = false
+        rect.texture:pause()
     end
-    
+    --
+    rect.stop = function()
+        if rect._stop then return end
+        --
+        Runtime:removeEventListener('enterFrame', rect.update)
+        --
+        rect.playing = false
+        rect.texture:stop()
+        rect._stop = true
+        --
+        if rect.listener then
+            rect.listener(
+                {
+                    name = 'movie',
+                    phase = 'stopped',
+                    completed = rect._complete
+                }
+            )
+        end
+        --
+        if rect._preserve then return end
+        --
+        rect.dispose()
+    end
+    --
+    rect.dispose = function()
+        if rect.playing then return end
+        --
+        timer.performWithDelay(100,
+            function()
+                if rect.texture then
+                    rect.texture:releaseSelf()
+                    rect.texture = nil
+                end
+                --
+                rect:removeSelf()
+            end
+        )
+    end
+    --
     return rect
 end
 
--------------------------------------------------------------------------------
--- END
--------------------------------------------------------------------------------
+-- Looping video
+function lib.newMovieLoop(opts)
+    local group = display.newGroup()
+    --
+    group._stop = false
+    group.iterations = 1
+    group.playing = false
+    group.listener = opts.listener
+    --
+    group.callback = function(event)
+        if group._stop then return end
+        --
+        group.iterations = group.iterations + 1
+        --
+        if group.iterations % 2 == 0 then
+            group.two.isVisible = true
+            group.two.play()
+            --
+            timer.performWithDelay(200, group.one.dispose)
+            timer.performWithDelay(500,
+                function()
+                    group.one = lib.newMovieRect(group.options1)
+                    group.one.isVisible = false
+                    group:insert(group.one)
+                end
+            )
+        else
+            group.one.isVisible = true
+            group.one.play()
+            --
+            timer.performWithDelay(200, group.two.dispose)
+            timer.performWithDelay(500,
+                function()
+                    group.two = lib.newMovieRect(group.options2)
+                    group.two.isVisible = false
+                    group:insert(group.two)
+                end
+            )
+        end
+        --
+        if group.listener then
+            group.listener(
+                {
+                    name = 'movie',
+                    phase = 'loop',
+                    iterations = group.iterations
+                }
+            )
+        end
+    end
+    --
+    group.options1 = {
+        x = opts.x, y = opts.y,
+        listener = group.callback,
+        preserve = true, channel = opts.channel1,
+        width = opts.width, height = opts.height,
+        filename = opts.filename, baseDir = opts.baseDir
+    }
+    --
+    group.options2 = copy(group.options1)
+    group.options2.channel = opts.channel2
+    --
+    group.one = lib.newMovieRect(group.options1)
+    group.two = lib.newMovieRect(group.options2)
+    group.two.isVisible = false
+    --
+    group:insert(group.one)
+    group:insert(group.two)
+    --
+    group.rect = function()
+        return group.iterations % 2 == 0 and group.two or group.one
+    end
+    --
+    group.play = function()
+        if group.playing then return end
+        --
+        group.rect().play()
+        group.playing = true
+    end
+    --
+    group.pause = function()
+        if not group.playing then return end
+        --
+        group.playing = false
+        group.rect().pause()
+    end
+    --
+    group.stop = function()
+        if group._stop then return end
+        --
+        group._stop = true
+        group.playing = false
+        --
+        group.one.stop()
+        group.two.stop()
+        --
+        group.one.dispose()
+        group.two.dispose()
+        --
+        timer.performWithDelay(300, function() group:removeSelf() end)
+        --
+        if group.listener then
+            group.listener(
+                {
+                    name = 'movie',
+                    phase = 'stopped',
+                    completed = group.iterations > 1 and true or false
+                }
+            )
+        end
+    end
+    --
+    return group
+end
 
 -- Return an instance
 return lib
