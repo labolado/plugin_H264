@@ -426,5 +426,7 @@ paket-files/
 *.html
 
 # Other #
+**/*iphone.tgz
+**/*iphone-sim.tgz
 **/data.tgz
 

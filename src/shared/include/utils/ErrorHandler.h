@@ -6,6 +6,7 @@
 #include <string>
 #include <sstream>
 
+// #define PLUGIN_H264_LOG( expr ) CoronaLog expr
 #define PLUGIN_H264_LOG( expr )
 #define PLUGIN_H264_LOG_TEMP( expr ) CoronaLog expr
 
@@ -18,7 +19,7 @@ public:
     void setError(H264Error error, const std::string& message) {
         last_error_ = error;
         last_message_ = message;
-        CoronaLog( (last_message_.c_str()) );
+        // CoronaLog( (last_message_.c_str()) );
     }
     
     void clearError() {

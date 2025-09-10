@@ -269,7 +269,7 @@ bool MP4Demuxer::readNextSample(int track_id, MP4Sample& sample) {
     // 获取样本信息
     MP4D_file_offset_t offset = MP4D_frame_offset(&demuxer_, track_id, sample_index, &frame_bytes, &timestamp, &duration);
 
-    if (offset == 0 || frame_bytes == 0) {
+    if (frame_bytes == 0) {
         // 该轨道文件结束或错误
         PLUGIN_H264_LOG( ("Track %d: End of track reached at sample %u\n", track_id, sample_index) );
         return false;
@@ -352,7 +352,7 @@ bool MP4Demuxer::seekToTime(double timestamp) {
             while (sample_index < track->sample_count) {
                 MP4D_file_offset_t offset = MP4D_frame_offset(&demuxer_, track_id, sample_index,
                                                              &frame_bytes, &sample_timestamp, &duration);
-                if (offset == 0) break;
+                if (frame_bytes == 0) break;
 
                 if (sample_timestamp >= target_timestamp) {
                     break;
@@ -393,7 +393,7 @@ int MP4Demuxer::readCallback(int64_t offset, void* buffer, size_t size, void* to
 
     // 读取数据
     demuxer->file_.read(static_cast<char*>(buffer), size);
-    // return static_cast<int>(demuxer->file_.gcount());
+
     return 0;
 }
 

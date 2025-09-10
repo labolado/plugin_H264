@@ -4,45 +4,45 @@
 namespace plugin_h264 {
 
 // 辅助函数：将AVCC格式转换为Annex-B格式
-std::vector<uint8_t> convertAVCCToAnnexB(const std::vector<uint8_t>& avcc_data, int nal_length_size = 4) {
-    std::vector<uint8_t> annexb_data;
+// std::vector<uint8_t> convertAVCCToAnnexB(const std::vector<uint8_t>& avcc_data, int nal_length_size = 4) {
+//     std::vector<uint8_t> annexb_data;
 
-    if (avcc_data.size() < nal_length_size) {
-        return annexb_data; // 数据太短，无效
-    }
+//     if (avcc_data.size() < nal_length_size) {
+//         return annexb_data; // 数据太短，无效
+//     }
 
-    size_t offset = 0;
-    while (offset + nal_length_size <= avcc_data.size()) {
-        // 读取NAL单元长度（大端序）
-        uint32_t nal_length = 0;
-        for (int i = 0; i < nal_length_size; ++i) {
-            nal_length = (nal_length << 8) | avcc_data[offset + i];
-        }
+//     size_t offset = 0;
+//     while (offset + nal_length_size <= avcc_data.size()) {
+//         // 读取NAL单元长度（大端序）
+//         uint32_t nal_length = 0;
+//         for (int i = 0; i < nal_length_size; ++i) {
+//             nal_length = (nal_length << 8) | avcc_data[offset + i];
+//         }
 
-        offset += nal_length_size;
+//         offset += nal_length_size;
 
-        // 检查长度是否有效
-        if (nal_length == 0 || offset + nal_length > avcc_data.size()) {
-            PLUGIN_H264_LOG( ("Invalid NAL length: %u, remaining data: %zu\n", nal_length, avcc_data.size() - offset) );
-            break; // 无效长度，停止处理
-        }
+//         // 检查长度是否有效
+//         if (nal_length == 0 || offset + nal_length > avcc_data.size()) {
+//             PLUGIN_H264_LOG( ("Invalid NAL length: %u, remaining data: %zu\n", nal_length, avcc_data.size() - offset) );
+//             break; // 无效长度，停止处理
+//         }
 
-        // 添加Annex-B起始码
-        annexb_data.insert(annexb_data.end(), {0x00, 0x00, 0x00, 0x01});
+//         // 添加Annex-B起始码
+//         annexb_data.insert(annexb_data.end(), {0x00, 0x00, 0x00, 0x01});
 
-        // 添加NAL单元数据
-        annexb_data.insert(annexb_data.end(),
-                          avcc_data.begin() + offset,
-                          avcc_data.begin() + offset + nal_length);
+//         // 添加NAL单元数据
+//         annexb_data.insert(annexb_data.end(),
+//                           avcc_data.begin() + offset,
+//                           avcc_data.begin() + offset + nal_length);
 
-        PLUGIN_H264_LOG( ("Converted NAL unit: length=%u, type=0x%02X\n", nal_length,
-               nal_length > 0 ? avcc_data[offset] & 0x1F : 0) );
+//         PLUGIN_H264_LOG( ("Converted NAL unit: length=%u, type=0x%02X\n", nal_length,
+//                nal_length > 0 ? avcc_data[offset] & 0x1F : 0) );
 
-        offset += nal_length;
-    }
+//         offset += nal_length;
+//     }
 
-    return annexb_data;
-}
+//     return annexb_data;
+// }
 
 H264Movie::H264Movie()
     : is_loaded_(false)
@@ -383,7 +383,7 @@ bool H264Movie::decodeNextVideoFrame() {
 
                     offset += 4;
 
-                    if (offset + nal_length > sample.data.size()) break;
+                    if (nal_length > sample.data.size() - offset) break;
 
                     // 添加NAL起始码
                     annexb_frame.insert(annexb_frame.end(), {0x00, 0x00, 0x00, 0x01});

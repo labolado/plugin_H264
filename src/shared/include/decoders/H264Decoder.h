@@ -3,8 +3,8 @@
 
 #include "../utils/Common.h"
 #include "../utils/ErrorHandler.h"
-#include <codec_def.h>  // OpenH264头文件
-#include <codec_api.h>
+#include "codec_def.h"  // OpenH264头文件
+#include "codec_api.h"
 
 namespace plugin_h264 {
 

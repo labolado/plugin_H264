@@ -92,35 +92,16 @@ bool H264Decoder::decode(const uint8_t* nal_data, size_t nal_size, VideoFrame& f
     );
 
     if (ret != dsErrorFree) {
-        // 检查各种类型的解码错误并分类处理
-        if (ret == 32 || ret == 34 || ret == 36) {
-            // B帧参考帧丢失错误
-            PLUGIN_H264_LOG( ("B-frame decode error: %d (ref frame lost), forcing decoder flush\n", ret) );
-        } else if (ret == 38) {
-            // SPS/PPS 相关错误，可能需要重新配置
-            PLUGIN_H264_LOG( ("SPS/PPS decode error: %d (parameter set issue), forcing decoder flush\n", ret) );
-        } else if (ret == 16 || ret == 16384) {
-            // 其他解码器内部错误
-            PLUGIN_H264_LOG( ("Decoder internal error: %d, forcing decoder flush\n", ret) );
-        } else {
-            // 未知错误，记录并处理
-            PLUGIN_H264_LOG( ("Unknown decode error: %d, forcing decoder flush\n", ret) );
-        }
+        PLUGIN_H264_LOG( ("H264 Decoder decode error: %d, forcing decoder flush\n", ret) );
 
         // 对于所有解码错误，都尝试刷新解码器
-        uint8_t* pData[3] = {0};
-        SBufferInfo sDstBufInfo;
+        memset(pData, 0, sizeof(pData));
         memset(&sDstBufInfo, 0, sizeof(SBufferInfo));
 
         // 调用解码器刷新，传入空数据
         DECODING_STATE flush_ret = decoder_->DecodeFrame2(nullptr, 0, pData, &sDstBufInfo);
 
         PLUGIN_H264_LOG( ("Decoder flush completed, flush result: %d\n", flush_ret) );
-
-        // 对于严重的系统错误（如16384），可能需要完全重置解码器
-        if (ret == 16384) {
-            PLUGIN_H264_LOG( ("Critical error detected, may need decoder reset\n") );
-        }
 
         return false;
     }
@@ -164,6 +145,11 @@ bool H264Decoder::decode(const uint8_t* nal_data, size_t nal_size, VideoFrame& f
 
     PLUGIN_H264_LOG( ("H264 Decoder output: %dx%d, src_strides: Y=%d UV=%d, dst_strides: Y=%d UV=%d\n",
            width, height, stride_y, stride_uv, frame.y_stride, frame.uv_stride) );
+
+    if (!pData[0] || !pData[1] || !pData[2]) {
+        setError(H264Error::DECODE_FAILED, "Decoder returned null plane pointers");
+        return false;
+    }
 
     // Y平面
     frame.y_plane = frame_buffer_.get();
