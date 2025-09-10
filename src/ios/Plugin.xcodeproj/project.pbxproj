@@ -1,0 +1,567 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		415FA3E62E71808800EAE0C5 /* libfdk-aac.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 415FA3E42E71808800EAE0C5 /* libfdk-aac.a */; };
+		415FA3E72E71808800EAE0C5 /* libopenh264.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 415FA3E52E71808800EAE0C5 /* libopenh264.a */; };
+		415FA40B2E71816200EAE0C5 /* plugin_h264.c in Sources */ = {isa = PBXBuildFile; fileRef = 415FA3E82E71816200EAE0C5 /* plugin_h264.c */; };
+		415FA40C2E71816200EAE0C5 /* AACDecoder.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 415FA3FB2E71816200EAE0C5 /* AACDecoder.cpp */; };
+		415FA40D2E71816200EAE0C5 /* DecoderManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 415FA4022E71816200EAE0C5 /* DecoderManager.cpp */; };
+		415FA40E2E71816200EAE0C5 /* ErrorHandler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 415FA4052E71816200EAE0C5 /* ErrorHandler.cpp */; };
+		415FA40F2E71816200EAE0C5 /* MP4Demuxer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 415FA3FD2E71816200EAE0C5 /* MP4Demuxer.cpp */; };
+		415FA4102E71816200EAE0C5 /* H264Movie.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 415FA4032E71816200EAE0C5 /* H264Movie.cpp */; };
+		415FA4112E71816200EAE0C5 /* MiniMP4Implementation.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 415FA4062E71816200EAE0C5 /* MiniMP4Implementation.cpp */; };
+		415FA4122E71816200EAE0C5 /* H264Decoder.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 415FA3FC2E71816200EAE0C5 /* H264Decoder.cpp */; };
+		415FA4132E71816200EAE0C5 /* H264TextureBinding.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 415FA3FF2E71816200EAE0C5 /* H264TextureBinding.cpp */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		A4E253B4166D6FB300DCDC2C /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "include/${PRODUCT_NAME}";
+			dstSubfolderSpec = 16;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		415FA3E32E71804700EAE0C5 /* libh264.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libh264.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		415FA3E42E71808800EAE0C5 /* libfdk-aac.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libfdk-aac.a"; path = "third_party_libs/libfdk-aac.a"; sourceTree = "<group>"; };
+		415FA3E52E71808800EAE0C5 /* libopenh264.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libopenh264.a; path = third_party_libs/libopenh264.a; sourceTree = "<group>"; };
+		415FA3E82E71816200EAE0C5 /* plugin_h264.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = plugin_h264.c; sourceTree = "<group>"; };
+		415FA3EA2E71816200EAE0C5 /* al.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = al.h; sourceTree = "<group>"; };
+		415FA3EB2E71816200EAE0C5 /* alc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = alc.h; sourceTree = "<group>"; };
+		415FA3ED2E71816200EAE0C5 /* AACDecoder.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AACDecoder.h; sourceTree = "<group>"; };
+		415FA3EE2E71816200EAE0C5 /* H264Decoder.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = H264Decoder.h; sourceTree = "<group>"; };
+		415FA3EF2E71816200EAE0C5 /* MP4Demuxer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MP4Demuxer.h; sourceTree = "<group>"; };
+		415FA3F12E71816200EAE0C5 /* H264TextureBinding.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = H264TextureBinding.h; sourceTree = "<group>"; };
+		415FA3F42E71816200EAE0C5 /* DecoderManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DecoderManager.h; sourceTree = "<group>"; };
+		415FA3F52E71816200EAE0C5 /* H264Movie.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = H264Movie.h; sourceTree = "<group>"; };
+		415FA3F72E71816200EAE0C5 /* Common.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Common.h; sourceTree = "<group>"; };
+		415FA3F82E71816200EAE0C5 /* ErrorHandler.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ErrorHandler.h; sourceTree = "<group>"; };
+		415FA3FB2E71816200EAE0C5 /* AACDecoder.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = AACDecoder.cpp; sourceTree = "<group>"; };
+		415FA3FC2E71816200EAE0C5 /* H264Decoder.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = H264Decoder.cpp; sourceTree = "<group>"; };
+		415FA3FD2E71816200EAE0C5 /* MP4Demuxer.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = MP4Demuxer.cpp; sourceTree = "<group>"; };
+		415FA3FF2E71816200EAE0C5 /* H264TextureBinding.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = H264TextureBinding.cpp; sourceTree = "<group>"; };
+		415FA4022E71816200EAE0C5 /* DecoderManager.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = DecoderManager.cpp; sourceTree = "<group>"; };
+		415FA4032E71816200EAE0C5 /* H264Movie.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = H264Movie.cpp; sourceTree = "<group>"; };
+		415FA4052E71816200EAE0C5 /* ErrorHandler.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ErrorHandler.cpp; sourceTree = "<group>"; };
+		415FA4062E71816200EAE0C5 /* MiniMP4Implementation.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = MiniMP4Implementation.cpp; sourceTree = "<group>"; };
+		415FAF642E7181A900EAE0C5 /* aacdecoder_lib.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = aacdecoder_lib.h; sourceTree = "<group>"; };
+		415FB11F2E7181A900EAE0C5 /* FDK_audio.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FDK_audio.h; sourceTree = "<group>"; };
+		415FB1202E7181A900EAE0C5 /* genericStds.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = genericStds.h; sourceTree = "<group>"; };
+		415FB1212E7181A900EAE0C5 /* machine_type.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = machine_type.h; sourceTree = "<group>"; };
+		415FB1222E7181A900EAE0C5 /* syslib_channelMapDescr.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = syslib_channelMapDescr.h; sourceTree = "<group>"; };
+		415FB15A2E7181A900EAE0C5 /* minimp4.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = minimp4.h; sourceTree = "<group>"; };
+		415FB1B22E7181A900EAE0C5 /* codec_api.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = codec_api.h; sourceTree = "<group>"; };
+		415FB1B32E7181A900EAE0C5 /* codec_app_def.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = codec_app_def.h; sourceTree = "<group>"; };
+		415FB1B42E7181A900EAE0C5 /* codec_def.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = codec_def.h; sourceTree = "<group>"; };
+		415FB1B52E7181A900EAE0C5 /* codec_ver.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = codec_ver.h; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		A4E253B3166D6FB300DCDC2C /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				415FA3E62E71808800EAE0C5 /* libfdk-aac.a in Frameworks */,
+				415FA3E72E71808800EAE0C5 /* libopenh264.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		415FA3E92E71816200EAE0C5 /* generated */ = {
+			isa = PBXGroup;
+			children = (
+				415FA3E82E71816200EAE0C5 /* plugin_h264.c */,
+			);
+			path = generated;
+			sourceTree = "<group>";
+		};
+		415FA3EC2E71816200EAE0C5 /* AL */ = {
+			isa = PBXGroup;
+			children = (
+				415FA3EA2E71816200EAE0C5 /* al.h */,
+				415FA3EB2E71816200EAE0C5 /* alc.h */,
+			);
+			path = AL;
+			sourceTree = "<group>";
+		};
+		415FA3F02E71816200EAE0C5 /* decoders */ = {
+			isa = PBXGroup;
+			children = (
+				415FA3ED2E71816200EAE0C5 /* AACDecoder.h */,
+				415FA3EE2E71816200EAE0C5 /* H264Decoder.h */,
+				415FA3EF2E71816200EAE0C5 /* MP4Demuxer.h */,
+			);
+			path = decoders;
+			sourceTree = "<group>";
+		};
+		415FA3F32E71816200EAE0C5 /* lua */ = {
+			isa = PBXGroup;
+			children = (
+				415FA3F12E71816200EAE0C5 /* H264TextureBinding.h */,
+			);
+			path = lua;
+			sourceTree = "<group>";
+		};
+		415FA3F62E71816200EAE0C5 /* managers */ = {
+			isa = PBXGroup;
+			children = (
+				415FA3F42E71816200EAE0C5 /* DecoderManager.h */,
+				415FA3F52E71816200EAE0C5 /* H264Movie.h */,
+			);
+			path = managers;
+			sourceTree = "<group>";
+		};
+		415FA3F92E71816200EAE0C5 /* utils */ = {
+			isa = PBXGroup;
+			children = (
+				415FA3F72E71816200EAE0C5 /* Common.h */,
+				415FA3F82E71816200EAE0C5 /* ErrorHandler.h */,
+			);
+			path = utils;
+			sourceTree = "<group>";
+		};
+		415FA3FA2E71816200EAE0C5 /* include */ = {
+			isa = PBXGroup;
+			children = (
+				415FA3EC2E71816200EAE0C5 /* AL */,
+				415FA3F02E71816200EAE0C5 /* decoders */,
+				415FA3F32E71816200EAE0C5 /* lua */,
+				415FA3F62E71816200EAE0C5 /* managers */,
+				415FA3F92E71816200EAE0C5 /* utils */,
+			);
+			path = include;
+			sourceTree = "<group>";
+		};
+		415FA3FE2E71816200EAE0C5 /* decoders */ = {
+			isa = PBXGroup;
+			children = (
+				415FA3FB2E71816200EAE0C5 /* AACDecoder.cpp */,
+				415FA3FC2E71816200EAE0C5 /* H264Decoder.cpp */,
+				415FA3FD2E71816200EAE0C5 /* MP4Demuxer.cpp */,
+			);
+			path = decoders;
+			sourceTree = "<group>";
+		};
+		415FA4012E71816200EAE0C5 /* lua */ = {
+			isa = PBXGroup;
+			children = (
+				415FA3FF2E71816200EAE0C5 /* H264TextureBinding.cpp */,
+			);
+			path = lua;
+			sourceTree = "<group>";
+		};
+		415FA4042E71816200EAE0C5 /* managers */ = {
+			isa = PBXGroup;
+			children = (
+				415FA4022E71816200EAE0C5 /* DecoderManager.cpp */,
+				415FA4032E71816200EAE0C5 /* H264Movie.cpp */,
+			);
+			path = managers;
+			sourceTree = "<group>";
+		};
+		415FA4072E71816200EAE0C5 /* utils */ = {
+			isa = PBXGroup;
+			children = (
+				415FA4052E71816200EAE0C5 /* ErrorHandler.cpp */,
+				415FA4062E71816200EAE0C5 /* MiniMP4Implementation.cpp */,
+			);
+			path = utils;
+			sourceTree = "<group>";
+		};
+		415FA4082E71816200EAE0C5 /* src */ = {
+			isa = PBXGroup;
+			children = (
+				415FA3FE2E71816200EAE0C5 /* decoders */,
+				415FA4012E71816200EAE0C5 /* lua */,
+				415FA4042E71816200EAE0C5 /* managers */,
+				415FA4072E71816200EAE0C5 /* utils */,
+			);
+			path = src;
+			sourceTree = "<group>";
+		};
+		415FA40A2E71816200EAE0C5 /* shared */ = {
+			isa = PBXGroup;
+			children = (
+				415FA3E92E71816200EAE0C5 /* generated */,
+				415FA3FA2E71816200EAE0C5 /* include */,
+				415FA4082E71816200EAE0C5 /* src */,
+			);
+			name = shared;
+			path = ../shared;
+			sourceTree = SOURCE_ROOT;
+		};
+		415FAF652E7181A900EAE0C5 /* include */ = {
+			isa = PBXGroup;
+			children = (
+				415FAF642E7181A900EAE0C5 /* aacdecoder_lib.h */,
+			);
+			path = include;
+			sourceTree = "<group>";
+		};
+		415FAFA62E7181A900EAE0C5 /* libAACdec */ = {
+			isa = PBXGroup;
+			children = (
+				415FAF652E7181A900EAE0C5 /* include */,
+			);
+			path = libAACdec;
+			sourceTree = "<group>";
+		};
+		415FB1232E7181A900EAE0C5 /* include */ = {
+			isa = PBXGroup;
+			children = (
+				415FB11F2E7181A900EAE0C5 /* FDK_audio.h */,
+				415FB1202E7181A900EAE0C5 /* genericStds.h */,
+				415FB1212E7181A900EAE0C5 /* machine_type.h */,
+				415FB1222E7181A900EAE0C5 /* syslib_channelMapDescr.h */,
+			);
+			path = include;
+			sourceTree = "<group>";
+		};
+		415FB1272E7181A900EAE0C5 /* libSYS */ = {
+			isa = PBXGroup;
+			children = (
+				415FB1232E7181A900EAE0C5 /* include */,
+			);
+			path = libSYS;
+			sourceTree = "<group>";
+		};
+		415FB1472E7181A900EAE0C5 /* fdk-aac */ = {
+			isa = PBXGroup;
+			children = (
+				415FAFA62E7181A900EAE0C5 /* libAACdec */,
+				415FB1272E7181A900EAE0C5 /* libSYS */,
+			);
+			path = "fdk-aac";
+			sourceTree = "<group>";
+		};
+		415FB15D2E7181A900EAE0C5 /* minimp4 */ = {
+			isa = PBXGroup;
+			children = (
+				415FB15A2E7181A900EAE0C5 /* minimp4.h */,
+			);
+			path = minimp4;
+			sourceTree = "<group>";
+		};
+		415FB1B72E7181A900EAE0C5 /* wels */ = {
+			isa = PBXGroup;
+			children = (
+				415FB1B22E7181A900EAE0C5 /* codec_api.h */,
+				415FB1B32E7181A900EAE0C5 /* codec_app_def.h */,
+				415FB1B42E7181A900EAE0C5 /* codec_def.h */,
+				415FB1B52E7181A900EAE0C5 /* codec_ver.h */,
+			);
+			path = wels;
+			sourceTree = "<group>";
+		};
+		415FB1B92E7181A900EAE0C5 /* api */ = {
+			isa = PBXGroup;
+			children = (
+				415FB1B72E7181A900EAE0C5 /* wels */,
+			);
+			path = api;
+			sourceTree = "<group>";
+		};
+		415FB75A2E7181A900EAE0C5 /* codec */ = {
+			isa = PBXGroup;
+			children = (
+				415FB1B92E7181A900EAE0C5 /* api */,
+			);
+			path = codec;
+			sourceTree = "<group>";
+		};
+		415FB8962E7181A900EAE0C5 /* openh264 */ = {
+			isa = PBXGroup;
+			children = (
+				415FB75A2E7181A900EAE0C5 /* codec */,
+			);
+			path = openh264;
+			sourceTree = "<group>";
+		};
+		415FB8972E7181A900EAE0C5 /* third_party */ = {
+			isa = PBXGroup;
+			children = (
+				415FB1472E7181A900EAE0C5 /* fdk-aac */,
+				415FB15D2E7181A900EAE0C5 /* minimp4 */,
+				415FB8962E7181A900EAE0C5 /* openh264 */,
+			);
+			name = third_party;
+			path = /Users/bc/Documents/dev/app/github/plugin_H264/third_party;
+			sourceTree = "<absolute>";
+		};
+		A484110E15114F700074BD57 = {
+			isa = PBXGroup;
+			children = (
+				415FB8972E7181A900EAE0C5 /* third_party */,
+				415FA40A2E71816200EAE0C5 /* shared */,
+				F5F02C8D25E0336F00F763D4 /* Frameworks */,
+				415FA3E32E71804700EAE0C5 /* libh264.a */,
+			);
+			sourceTree = "<group>";
+		};
+		F5F02C8D25E0336F00F763D4 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				415FA3E42E71808800EAE0C5 /* libfdk-aac.a */,
+				415FA3E52E71808800EAE0C5 /* libopenh264.a */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		A4E253B5166D6FB300DCDC2C /* h264 */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A4E253BF166D6FB300DCDC2C /* Build configuration list for PBXNativeTarget "h264" */;
+			buildPhases = (
+				A4E253B2166D6FB300DCDC2C /* Sources */,
+				A4E253B3166D6FB300DCDC2C /* Frameworks */,
+				A4E253B4166D6FB300DCDC2C /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = h264;
+			productName = plugin_library;
+			productReference = 415FA3E32E71804700EAE0C5 /* libh264.a */;
+			productType = "com.apple.product-type.library.static";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		A484111015114F700074BD57 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0940;
+			};
+			buildConfigurationList = A484111315114F700074BD57 /* Build configuration list for PBXProject "Plugin" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				English,
+				en,
+				Base,
+			);
+			mainGroup = A484110E15114F700074BD57;
+			productRefGroup = A484110E15114F700074BD57;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				A4E253B5166D6FB300DCDC2C /* h264 */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		A4E253B2166D6FB300DCDC2C /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				415FA40B2E71816200EAE0C5 /* plugin_h264.c in Sources */,
+				415FA40C2E71816200EAE0C5 /* AACDecoder.cpp in Sources */,
+				415FA40D2E71816200EAE0C5 /* DecoderManager.cpp in Sources */,
+				415FA40E2E71816200EAE0C5 /* ErrorHandler.cpp in Sources */,
+				415FA40F2E71816200EAE0C5 /* MP4Demuxer.cpp in Sources */,
+				415FA4102E71816200EAE0C5 /* H264Movie.cpp in Sources */,
+				415FA4112E71816200EAE0C5 /* MiniMP4Implementation.cpp in Sources */,
+				415FA4122E71816200EAE0C5 /* H264Decoder.cpp in Sources */,
+				415FA4132E71816200EAE0C5 /* H264TextureBinding.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		A484114015114F700074BD57 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
+				ONLY_ACTIVE_ARCH = YES;
+				OTHER_LDFLAGS = "-ObjC";
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				USER_HEADER_SEARCH_PATHS = "${SRCROOT}/Native/Corona/shared/include/Corona ${SRCROOT}/Native/Corona/shared/include/lua ../shared ../../third_party/ByteReader";
+			};
+			name = Debug;
+		};
+		A484114115114F700074BD57 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = YES;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
+				OTHER_CFLAGS = "-DNS_BLOCK_ASSERTIONS=1";
+				OTHER_LDFLAGS = "-ObjC";
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				USER_HEADER_SEARCH_PATHS = "${SRCROOT}/Native/Corona/shared/include/Corona ${SRCROOT}/Native/Corona/shared/include/lua ../shared ../../third_party/ByteReader";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		A4E253C0166D6FB300DCDC2C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "c++14";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
+				DSTROOT = /tmp/plugin_library.dst;
+				ENABLE_BITCODE = NO;
+				GCC_PRECOMPILE_PREFIX_HEADER = NO;
+				GCC_PREPROCESSOR_DEFINITIONS = "";
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GENERATE_MASTER_OBJECT_FILE = YES;
+				LIBRARY_SEARCH_PATHS = (
+					"${SRCROOT}/third_party_libs",
+					"$(PROJECT_DIR)/third_party_libs",
+				);
+				OTHER_LDFLAGS = "-ObjC";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				USER_HEADER_SEARCH_PATHS = "${SRCROOT}/Native/Corona/shared/include/Corona ${SRCROOT}/Native/Corona/shared/include/lua ${SRCROOT}/../shared/include ${SRCROOT}/../../third_party/openh264/codec/api/wels ${SRCROOT}/../../third_party/fdk-aac/libAACdec/include ${SRCROOT}/../../third_party/fdk-aac/libSYS/include $(SRCROOT)/../../third_party/minimp4";
+			};
+			name = Debug;
+		};
+		A4E253C1166D6FB300DCDC2C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "c++14";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
+				DSTROOT = /tmp/plugin_library.dst;
+				ENABLE_BITCODE = NO;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_PRECOMPILE_PREFIX_HEADER = NO;
+				GCC_PREPROCESSOR_DEFINITIONS = "";
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GENERATE_MASTER_OBJECT_FILE = YES;
+				"HEADER_SEARCH_PATHS[arch=*]" = "";
+				LIBRARY_SEARCH_PATHS = (
+					"${SRCROOT}/third_party_libs",
+					"$(PROJECT_DIR)/third_party_libs",
+				);
+				OTHER_LDFLAGS = "-ObjC";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				USER_HEADER_SEARCH_PATHS = "${SRCROOT}/Native/Corona/shared/include/Corona ${SRCROOT}/Native/Corona/shared/include/lua ${SRCROOT}/../shared/include ${SRCROOT}/../../third_party/openh264/codec/api/wels ${SRCROOT}/../../third_party/fdk-aac/libAACdec/include ${SRCROOT}/../../third_party/fdk-aac/libSYS/include $(SRCROOT)/../../third_party/minimp4";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		A484111315114F700074BD57 /* Build configuration list for PBXProject "Plugin" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A484114015114F700074BD57 /* Debug */,
+				A484114115114F700074BD57 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A4E253BF166D6FB300DCDC2C /* Build configuration list for PBXNativeTarget "h264" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A4E253C0166D6FB300DCDC2C /* Debug */,
+				A4E253C1166D6FB300DCDC2C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = A484111015114F700074BD57 /* Project object */;
+}

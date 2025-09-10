@@ -36,9 +36,8 @@
 		4159EAC72E65B25D00D390DB /* codec_api.h in Headers */ = {isa = PBXBuildFile; fileRef = 4159E4552E65B25D00D390DB /* codec_api.h */; };
 		4159EAD22E65B25D00D390DB /* syslib_channelMapDescr.h in Headers */ = {isa = PBXBuildFile; fileRef = 4159E3E52E65B25D00D390DB /* syslib_channelMapDescr.h */; };
 		4159EAEF2E65B25D00D390DB /* FDK_audio.h in Headers */ = {isa = PBXBuildFile; fileRef = 4159E3E22E65B25D00D390DB /* FDK_audio.h */; };
-		4159EB152E65B81900D390DB /* plugin_h264.dylib in Copy Files */ = {isa = PBXBuildFile; fileRef = A49186401641DDB800A39286 /* plugin_h264.dylib */; };
-		41A4AEB42E66E85600042C78 /* libopenh264.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 41A4AEB22E66E85600042C78 /* libopenh264.a */; };
-		41A4AEB52E66E85600042C78 /* libfdk-aac.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 41A4AEB32E66E85600042C78 /* libfdk-aac.a */; };
+		415FA3E02E71769A00EAE0C5 /* libfdk-aac.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 415FA3DE2E71769A00EAE0C5 /* libfdk-aac.a */; };
+		415FA3E12E71769A00EAE0C5 /* libopenh264.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 415FA3DF2E71769A00EAE0C5 /* libopenh264.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXBuildRule section */
@@ -56,20 +55,6 @@
 			script = "CORONA_DIR=$SRCROOT/CoronaEnterprise/Corona\nCORONA_MAC_BIN_DIR=$CORONA_DIR/mac/bin\n\nif [ -e \"$CORONA_MAC_BIN_DIR/lua\" ]; then\n    LUA_DIR=$CORONA_MAC_BIN_DIR/lua\nelse\n    echo \"Could not find proper 32-bit lua build in: $CORONA_MAC_BIN_DIR/lua\"\n    exit 1\nfi\n\necho $CORONA_MAC_BIN_DIR/lua2c.sh $INPUT_FILE_PATH $TARGET_TEMP_DIR $CONFIGURATION\n\"$CORONA_MAC_BIN_DIR/lua2c.sh\" \"$INPUT_FILE_PATH\" \"$TARGET_TEMP_DIR\" \"$CONFIGURATION\" \"$CORONA_MAC_BIN_DIR\"\n";
 		};
 /* End PBXBuildRule section */
-
-/* Begin PBXCopyFilesBuildPhase section */
-		F5C0010C1F2F58FB003F66E3 /* Copy Files */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "$HOME/Library/Application Support/Corona/Simulator/Plugins";
-			dstSubfolderSpec = 0;
-			files = (
-				4159EB152E65B81900D390DB /* plugin_h264.dylib in Copy Files */,
-			);
-			name = "Copy Files";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		4159D8F02E65924600D390DB /* plugin_h264.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = plugin_h264.c; sourceTree = "<group>"; };
@@ -101,8 +86,8 @@
 		4159E4562E65B25D00D390DB /* codec_app_def.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = codec_app_def.h; sourceTree = "<group>"; };
 		4159E4572E65B25D00D390DB /* codec_def.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = codec_def.h; sourceTree = "<group>"; };
 		4159E4582E65B25D00D390DB /* codec_ver.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = codec_ver.h; sourceTree = "<group>"; };
-		41A4AEB22E66E85600042C78 /* libopenh264.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libopenh264.a; path = ../../libs/mac/libopenh264.a; sourceTree = "<group>"; };
-		41A4AEB32E66E85600042C78 /* libfdk-aac.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libfdk-aac.a"; path = "../../libs/mac/libfdk-aac.a"; sourceTree = "<group>"; };
+		415FA3DE2E71769A00EAE0C5 /* libfdk-aac.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libfdk-aac.a"; path = "third_party_libs/libfdk-aac.a"; sourceTree = "<group>"; };
+		415FA3DF2E71769A00EAE0C5 /* libopenh264.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libopenh264.a; path = third_party_libs/libopenh264.a; sourceTree = "<group>"; };
 		A4430897164C70D800B9117B /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		A49186401641DDB800A39286 /* plugin_h264.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = plugin_h264.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -112,8 +97,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				41A4AEB42E66E85600042C78 /* libopenh264.a in Frameworks */,
-				41A4AEB52E66E85600042C78 /* libfdk-aac.a in Frameworks */,
+				415FA3E02E71769A00EAE0C5 /* libfdk-aac.a in Frameworks */,
+				415FA3E12E71769A00EAE0C5 /* libopenh264.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -362,8 +347,8 @@
 		A482DA8615F9B7E70084DC42 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				41A4AEB32E66E85600042C78 /* libfdk-aac.a */,
-				41A4AEB22E66E85600042C78 /* libopenh264.a */,
+				415FA3DE2E71769A00EAE0C5 /* libfdk-aac.a */,
+				415FA3DF2E71769A00EAE0C5 /* libopenh264.a */,
 				A4430897164C70D800B9117B /* Foundation.framework */,
 			);
 			name = Frameworks;
@@ -409,7 +394,6 @@
 				A49186341641DDB800A39286 /* Sources */,
 				A49186381641DDB800A39286 /* Frameworks */,
 				A491863A1641DDB800A39286 /* Headers */,
-				F5C0010C1F2F58FB003F66E3 /* Copy Files */,
 			);
 			buildRules = (
 				A491863C1641DDB800A39286 /* PBXBuildRule */,
@@ -536,9 +520,12 @@
 				DYLIB_CURRENT_VERSION = 1;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				INSTALL_PATH = "@rpath";
-				LIBRARY_SEARCH_PATHS = "${SRCROOT}/../../libs/mac";
+				LIBRARY_SEARCH_PATHS = (
+					"${SRCROOT}/third_party_libs",
+					"$(PROJECT_DIR)/third_party_libs",
+				);
 				PRODUCT_NAME = plugin_h264;
-				USER_HEADER_SEARCH_PATHS = "${SRCROOT}/CoronaEnterprise/Corona/shared/include/Corona ${SRCROOT}/CoronaEnterprise/Corona/shared/include/lua ${SRCROOT}/CoronaEnterprise/Corona/ios/include/Corona ${SRCROOT}/../shared/include ${SRCROOT}/../../third_party/openh264/codec/api/wels ${SRCROOT}/../../third_party/fdk-aac/libAACdec/include ${SRCROOT}/../../third_party/fdk-aac/libSYS/include $(SRCROOT)/../../third_party/minimp4";
+				USER_HEADER_SEARCH_PATHS = "${SRCROOT}/Native/Corona/shared/include/Corona ${SRCROOT}/Native/Corona/shared/include/lua ${SRCROOT}/../shared/include ${SRCROOT}/../../third_party/openh264/codec/api/wels ${SRCROOT}/../../third_party/fdk-aac/libAACdec/include ${SRCROOT}/../../third_party/fdk-aac/libSYS/include $(SRCROOT)/../../third_party/minimp4";
 			};
 			name = Debug;
 		};
@@ -552,9 +539,12 @@
 				DYLIB_CURRENT_VERSION = 1;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				INSTALL_PATH = "@rpath";
-				LIBRARY_SEARCH_PATHS = "${SRCROOT}/../../libs/mac";
+				LIBRARY_SEARCH_PATHS = (
+					"${SRCROOT}/third_party_libs",
+					"$(PROJECT_DIR)/third_party_libs",
+				);
 				PRODUCT_NAME = plugin_h264;
-				USER_HEADER_SEARCH_PATHS = "${SRCROOT}/CoronaEnterprise/Corona/shared/include/Corona ${SRCROOT}/CoronaEnterprise/Corona/shared/include/lua ${SRCROOT}/CoronaEnterprise/Corona/ios/include/Corona ${SRCROOT}/../shared/include ${SRCROOT}/../../third_party/openh264/codec/api/wels ${SRCROOT}/../../third_party/fdk-aac/libAACdec/include ${SRCROOT}/../../third_party/fdk-aac/libSYS/include $(SRCROOT)/../../third_party/minimp4";
+				USER_HEADER_SEARCH_PATHS = "${SRCROOT}/Native/Corona/shared/include/Corona ${SRCROOT}/Native/Corona/shared/include/lua ${SRCROOT}/../shared/include ${SRCROOT}/../../third_party/openh264/codec/api/wels ${SRCROOT}/../../third_party/fdk-aac/libAACdec/include ${SRCROOT}/../../third_party/fdk-aac/libSYS/include $(SRCROOT)/../../third_party/minimp4";
 			};
 			name = Release;
 		};

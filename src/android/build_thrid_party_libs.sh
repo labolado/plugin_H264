@@ -23,7 +23,10 @@ export ANDROID_NDK_HOME=$ANDROID_NDK
 clean_prev_build_results() {
     cd ${openh264_dir}
     make clean
-    rm codec/common/src/cpu-features.o
+    if [ -f codec/common/src/cpu-features.o ]
+    then
+        rm codec/common/src/cpu-features.o
+    fi
     ./gradlew clean
 }
 
@@ -34,26 +37,25 @@ remove_if_exists() {
     fi
 }
 
-# COMMON_BUILD_ARGS="OS=android NDKROOT=${ANDROID_NDK} TARGET=12 NDKLEVEL=21 -j${CPU_CORES}"
-# target_lib_name=${openh264_dir}/libopenh264.a
+COMMON_BUILD_ARGS="OS=android NDKROOT=${ANDROID_NDK} TARGET=12 NDKLEVEL=21 -j${CPU_CORES}"
+target_lib_name=${openh264_dir}/libopenh264.a
 
-# clean_prev_build_results
-# make ${COMMON_BUILD_ARGS} ARCH=arm64
-# cp ${target_lib_name} ${current_dir}/jni/arm64-v8a/
+clean_prev_build_results
+make ${COMMON_BUILD_ARGS} ARCH=arm64
+cp ${target_lib_name} ${current_dir}/jni/arm64-v8a/
 
-# clean_prev_build_results
-# make ${COMMON_BUILD_ARGS} ARCH=arm
-# cp ${target_lib_name} ${current_dir}/jni/armeabi-v7a/
+clean_prev_build_results
+make ${COMMON_BUILD_ARGS} ARCH=arm
+cp ${target_lib_name} ${current_dir}/jni/armeabi-v7a/
 
-# clean_prev_build_results
-# make ${COMMON_BUILD_ARGS} ARCH=x86
-# cp ${target_lib_name} ${current_dir}/jni/x86/
+clean_prev_build_results
+make ${COMMON_BUILD_ARGS} ARCH=x86
+cp ${target_lib_name} ${current_dir}/jni/x86/
 
-# clean_prev_build_results
-# make ${COMMON_BUILD_ARGS} ARCH=x86_64
-# cp ${target_lib_name} ${current_dir}/jni/x86_64/
+clean_prev_build_results
+make ${COMMON_BUILD_ARGS} ARCH=x86_64
+cp ${target_lib_name} ${current_dir}/jni/x86_64/
 
-# ANDROID_NDK_DIR=${ANDROID_NDK_HOME}/20.1.5948944
 ANDROID_NDK_DIR=${ANDROID_NDK}
 
 build_fdk_aac() {
@@ -97,31 +99,3 @@ build_fdk_aac arm64-v8a
 build_fdk_aac armeabi-v7a
 build_fdk_aac x86_64
 build_fdk_aac x86
-
-# 编译所有架构
-# for arch in "aarch64" "arm" "i686" "x86_64"; do
-#   case $arch in
-#     "aarch64")
-#       host="aarch64-linux-android"
-#       ;;
-#     "arm")
-#       host="arm-linux-androideabi"
-#       ;;
-#     "i686")
-#       host="i686-linux-android"
-#       ;;
-#     "x86_64")
-#       host="x86_64-linux-android"
-#       ;;
-#     *)
-#       continue
-#       ;;
-#   esac
-
-#   echo "Building for $arch..."
-#   ./configure --host=$host --prefix=$(pwd)/android-build/$arch --enable-static --disable-shared
-#   make clean
-#   make -j${CPU_CORES}
-# done
-
-# echo "Done."
