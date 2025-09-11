@@ -11,7 +11,9 @@ H264Decoder::H264Decoder()
     , frame_width_(0)
     , frame_height_(0)
     , frame_buffer_size_(0)
-    , buffer_pool_(3) {  // 使用3个缓冲区的池
+    , buffer_pool_(3)  // 使用3个缓冲区的池
+    , enable_multithreading_after_sps_pps_(true)  // 启用延迟多线程策略
+    , sps_pps_processed_(false) {
 }
 
 H264Decoder::~H264Decoder() {
@@ -31,30 +33,18 @@ bool H264Decoder::initialize() {
         return false;
     }
 
-    // 在Initialize之前设置多线程选项 - 添加详细调试
-    int num_threads = std::thread::hardware_concurrency();
-    PLUGIN_H264_LOG( ("Hardware concurrency detected: %d\n", num_threads) );
+    // 重要发现：使用DecodeFrameNoDelay API支持多线程
+    // 基于Mozilla GMP实现和OpenH264官方测试的最佳实践
+    PLUGIN_H264_LOG( ("Setting up multi-threading using DecodeFrameNoDelay API\n") );
     
-    if (num_threads == 0) {
-        num_threads = 4; // 后备默认值
-        PLUGIN_H264_LOG( ("Using fallback thread count: %d\n", num_threads) );
-    }
+    int num_threads = 2;  // 使用2线程，平衡性能和兼容性
+    long ret = decoder_->SetOption(DECODER_OPTION_NUM_OF_THREADS, &num_threads);
+    PLUGIN_H264_LOG( ("SetOption DECODER_OPTION_NUM_OF_THREADS(2) returned: %ld\n", ret) );
     
-    if (num_threads > 1) {
-        // OpenH264内部限制最大线程数为3
-        num_threads = std::min({num_threads, 3});
-        PLUGIN_H264_LOG( ("Attempting to set %d threads before Initialize\n", num_threads) );
-        
-        long ret = decoder_->SetOption(DECODER_OPTION_NUM_OF_THREADS, &num_threads);
-        PLUGIN_H264_LOG( ("SetOption DECODER_OPTION_NUM_OF_THREADS returned: %ld\n", ret) );
-        
-        if (ret == cmResultSuccess) {
-            PLUGIN_H264_LOG( ("H264 decoder multi-threading configured with %d threads\n", num_threads) );
-        } else {
-            PLUGIN_H264_LOG( ("Multi-threading setup failed (ret=%ld), will continue with single thread\n", ret) );
-        }
+    if (ret == cmResultSuccess) {
+        PLUGIN_H264_LOG( ("Multi-threading configured with 2 threads (using DecodeFrameNoDelay)\n") );
     } else {
-        PLUGIN_H264_LOG( ("Single core detected, using single thread\n") );
+        PLUGIN_H264_LOG( ("Multi-threading setup failed, will use single thread\n") );
     }
 
     // 设置解码器选项
@@ -73,8 +63,9 @@ bool H264Decoder::setupDecoderOptions() {
     SDecodingParam sDecParam;
     memset(&sDecParam, 0, sizeof(SDecodingParam));
 
-    // 关键：必须使用VIDEO_BITSTREAM_AVC才能正确处理H.264
-    sDecParam.sVideoProperty.eVideoBsType = VIDEO_BITSTREAM_AVC;
+    // 使用OpenH264官方多线程测试的配置：VIDEO_BITSTREAM_DEFAULT
+    // 配合DecodeFrameNoDelay API实现多线程解码
+    sDecParam.sVideoProperty.eVideoBsType = VIDEO_BITSTREAM_DEFAULT;
     sDecParam.uiTargetDqLayer = UCHAR_MAX;  // 解码所有层
     sDecParam.eEcActiveIdc = ERROR_CON_SLICE_COPY;  // 保持我们验证过的错误隐藏策略
     sDecParam.sVideoProperty.size = sizeof(sDecParam.sVideoProperty);
@@ -115,13 +106,20 @@ bool H264Decoder::decode(const uint8_t* nal_data, size_t nal_size, VideoFrame& f
     SBufferInfo sDstBufInfo;
     memset(&sDstBufInfo, 0, sizeof(SBufferInfo));
 
-    // 解码帧
-    DECODING_STATE ret = decoder_->DecodeFrame2(
+    // 添加详细的解码调试信息
+    PLUGIN_H264_LOG_DECODE( ("Decode: NAL size=%zu, decoder=%p, initialized=%s\n", 
+                      nal_size, decoder_, initialized_ ? "true" : "false") );
+
+    // 重要发现：应使用DecodeFrameNoDelay而不是DecodeFrame2以支持多线程
+    // Mozilla GMP和OpenH264官方测试都使用DecodeFrameNoDelay
+    DECODING_STATE ret = decoder_->DecodeFrameNoDelay(
         nal_data,
         static_cast<int>(nal_size),
         pData,
         &sDstBufInfo
     );
+
+    PLUGIN_H264_LOG_DECODE( ("DecodeFrameNoDelay returned: %d, BufferStatus=%d\n", ret, sDstBufInfo.iBufferStatus) );
 
     if (ret != dsErrorFree) {
         PLUGIN_H264_LOG( ("H264 Decoder decode error: %d, forcing decoder flush\n", ret) );
@@ -130,8 +128,8 @@ bool H264Decoder::decode(const uint8_t* nal_data, size_t nal_size, VideoFrame& f
         memset(pData, 0, sizeof(pData));
         memset(&sDstBufInfo, 0, sizeof(SBufferInfo));
 
-        // 调用解码器刷新，传入空数据
-        DECODING_STATE flush_ret = decoder_->DecodeFrame2(nullptr, 0, pData, &sDstBufInfo);
+        // 调用解码器刷新，使用FlushFrame而不是DecodeFrame2
+        DECODING_STATE flush_ret = decoder_->FlushFrame(pData, &sDstBufInfo);
 
         PLUGIN_H264_LOG( ("Decoder flush completed, flush result: %d\n", flush_ret) );
 
