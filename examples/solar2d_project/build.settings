@@ -6,54 +6,33 @@ settings =
         default = "portrait",
         supported = { "portrait", "portraitUpsideDown" }
     },
-    
+
     -- Exclude unnecessary files from build
     excludeFiles =
     {
         all = { ".DS_Store", "*.bak", "*.psd", ".git", ".gitignore", ".cache", "*.md" },
         android = { "LaunchScreen.storyboardc", "Images.xcassets/*.*" },
     },
-    
+
     -- Plugin configuration
     plugins =
     {
         ["plugin.h264"] =
         {
-            publisherId = "com.yourcompany",
-            supportedPlatforms = 
+            publisherId = "com.labolado",
+            supportedPlatforms =
             {
-                macos = true,
-                win32 = true,
+                ["android"] = {url = "http://127.0.0.1:10980/plugins/android/plugin.h264/2020.3627-android.tgz"},
+                ["iphone"] = {url = "http://127.0.0.1:10980/plugins/iphone/plugin.h264/2020.3627-iphone.tgz"},
+                ["iphone-sim"] = {url = "http://127.0.0.1:10980/plugins/iphone-sim/plugin.h264/2020.3627-iphone-sim.tgz"},
+                ["macos"] = {url = "http://127.0.0.1:10980/plugins/mac-sim/plugin.h264/2020.3627-mac-sim.tgz"},
+                ["mac-sim"] = {url = "http://127.0.0.1:10980/plugins/mac-sim/plugin.h264/2020.3627-mac-sim.tgz"},
+                -- macos = true,
+                -- win32 = true,
                 -- iOS and Android will be added when available
                 -- ios = { url = "https://github.com/labolado/plugin_H264/releases/download/v1.0.0/plugin-h264-ios.tar.gz" },
                 -- android = { url = "https://github.com/labolado/plugin_H264/releases/download/v1.0.0/plugin-h264-android.tar.gz" },
             }
         },
-    },
-    
-    -- iOS specific settings
-    iphone =
-    {
-        xcassets = "Images.xcassets",
-        plist =
-        {
-            UIStatusBarHidden = false,
-            UILaunchStoryboardName = "LaunchScreen",
-            
-            -- Media access permissions (if needed)
-            NSPhotoLibraryUsageDescription = "This app accesses photos for video playback examples.",
-            NSMicrophoneUsageDescription = "This app may access microphone for video recording features.",
-        },
-    },
-    
-    -- Android specific settings  
-    android =
-    {
-        usesPermissions =
-        {
-            "android.permission.INTERNET",
-            "android.permission.WRITE_EXTERNAL_STORAGE",
-            "android.permission.READ_EXTERNAL_STORAGE",
-        },
-    },
+    }
 }
