@@ -31,6 +31,22 @@ bool H264Decoder::initialize() {
         return false;
     }
 
+    // 在Initialize之前设置多线程 - 这是正确的时机
+    int num_threads = std::thread::hardware_concurrency();
+    if (num_threads == 0) {
+        num_threads = 4; // 默认使用4线程
+    }
+    if (num_threads > 1) {
+        // OpenH264限制最大线程数为3（根据源码）
+        num_threads = std::min(num_threads, 3);
+        int ret = decoder_->SetOption(DECODER_OPTION_NUM_OF_THREADS, &num_threads);
+        if (ret == 0) {
+            PLUGIN_H264_LOG( ("H264 decoder multi-threading configured with %d threads\n", num_threads) );
+        } else {
+            PLUGIN_H264_LOG( ("Note: Failed to configure multi-threading, using single thread\n") );
+        }
+    }
+
     // 设置解码器选项
     if (!setupDecoderOptions()) {
         destroy();
@@ -66,28 +82,6 @@ bool H264Decoder::setupDecoderOptions() {
         // 这不是致命错误，只是记录警告
         setError(H264Error::NONE, "Warning: Failed to set error concealment option");
     }
-    
-    // 暂时禁用多线程解码以排查问题
-    // TODO: 调查为什么多线程设置导致解码器初始化失败
-    /*
-    // 启用多线程解码 - 在Initialize之后设置
-    int num_threads = std::thread::hardware_concurrency();
-    // 处理hardware_concurrency()返回0的情况
-    if (num_threads == 0) {
-        num_threads = 4; // 默认使用4线程
-    }
-    if (num_threads > 1) {
-        // 限制最大线程数为8（避免过多线程造成开销）
-        num_threads = std::min(num_threads, 8);
-        ret = decoder_->SetOption(DECODER_OPTION_NUM_OF_THREADS, &num_threads);
-        if (ret != 0) {
-            // 如果设置线程失败，不影响解码功能
-            PLUGIN_H264_LOG( ("Note: Multi-threading not available, using single thread\n") );
-        } else {
-            PLUGIN_H264_LOG( ("H264 decoder multi-threading enabled with %d threads\n", num_threads) );
-        }
-    }
-    */
 
     return true;
 }
