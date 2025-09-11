@@ -31,22 +31,30 @@ bool H264Decoder::initialize() {
         return false;
     }
 
-    // 在Initialize之前设置多线程选项（基于Mozilla和OpenH264测试代码的最佳实践）
+    // 在Initialize之前设置多线程选项 - 添加详细调试
     int num_threads = std::thread::hardware_concurrency();
+    PLUGIN_H264_LOG( ("Hardware concurrency detected: %d\n", num_threads) );
+    
     if (num_threads == 0) {
         num_threads = 4; // 后备默认值
+        PLUGIN_H264_LOG( ("Using fallback thread count: %d\n", num_threads) );
     }
+    
     if (num_threads > 1) {
-        // OpenH264内部限制最大线程数为3，并且限制不超过CPU核心数
+        // OpenH264内部限制最大线程数为3
         num_threads = std::min({num_threads, 3});
+        PLUGIN_H264_LOG( ("Attempting to set %d threads before Initialize\n", num_threads) );
         
         long ret = decoder_->SetOption(DECODER_OPTION_NUM_OF_THREADS, &num_threads);
+        PLUGIN_H264_LOG( ("SetOption DECODER_OPTION_NUM_OF_THREADS returned: %ld\n", ret) );
+        
         if (ret == cmResultSuccess) {
-            PLUGIN_H264_LOG( ("H264 decoder multi-threading enabled with %d threads\n", num_threads) );
+            PLUGIN_H264_LOG( ("H264 decoder multi-threading configured with %d threads\n", num_threads) );
         } else {
-            // 多线程设置失败不是致命错误，继续单线程模式
-            PLUGIN_H264_LOG( ("Multi-threading setup failed (ret=%ld), continuing with single thread\n", ret) );
+            PLUGIN_H264_LOG( ("Multi-threading setup failed (ret=%ld), will continue with single thread\n", ret) );
         }
+    } else {
+        PLUGIN_H264_LOG( ("Single core detected, using single thread\n") );
     }
 
     // 设置解码器选项
@@ -61,17 +69,20 @@ bool H264Decoder::initialize() {
 }
 
 bool H264Decoder::setupDecoderOptions() {
-    // 使用验证过的参数配置，确保与原始版本一致
+    // 基于Mozilla和OpenH264官方测试代码的最佳实践
     SDecodingParam sDecParam;
     memset(&sDecParam, 0, sizeof(SDecodingParam));
 
-    // 关键：保持使用VIDEO_BITSTREAM_AVC（原始工作版本的配置）
+    // 关键：必须使用VIDEO_BITSTREAM_AVC才能正确处理H.264
     sDecParam.sVideoProperty.eVideoBsType = VIDEO_BITSTREAM_AVC;
     sDecParam.uiTargetDqLayer = UCHAR_MAX;  // 解码所有层
-    sDecParam.eEcActiveIdc = ERROR_CON_SLICE_COPY;  // 保持验证过的错误隐藏策略
+    sDecParam.eEcActiveIdc = ERROR_CON_SLICE_COPY;  // 保持我们验证过的错误隐藏策略
     sDecParam.sVideoProperty.size = sizeof(sDecParam.sVideoProperty);
 
+    PLUGIN_H264_LOG( ("Calling decoder->Initialize with VIDEO_BITSTREAM_AVC\n") );
     int ret = decoder_->Initialize(&sDecParam);
+    PLUGIN_H264_LOG( ("decoder->Initialize returned: %d\n", ret) );
+    
     if (ret != 0) {
         setError(H264Error::DECODER_INIT_FAILED,
                 "Failed to initialize decoder parameters, error: " + std::to_string(ret));
