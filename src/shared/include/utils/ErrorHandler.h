@@ -2,13 +2,14 @@
 #define PLUGIN_H264_ERROR_HANDLER_H
 
 #include "Common.h"
-#include "CoronaLog.h"
+// CoronaLog.h will be included by the Corona SDK headers
 #include <string>
 #include <sstream>
 
-// #define PLUGIN_H264_LOG( expr ) CoronaLog expr
-#define PLUGIN_H264_LOG( expr )
-#define PLUGIN_H264_LOG_TEMP( expr ) CoronaLog expr
+// 临时调试：只启用关键的解码日志
+#define PLUGIN_H264_LOG( expr ) 
+#define PLUGIN_H264_LOG_DECODE( expr ) // 暂时禁用以避免CoronaLog冲突
+#define PLUGIN_H264_LOG_TEMP( expr )
 
 namespace plugin_h264 {
 
