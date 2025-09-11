@@ -5,8 +5,47 @@
 #include "../utils/ErrorHandler.h"
 #include "codec_def.h"  // OpenH264头文件
 #include "codec_api.h"
+#include <vector>
+#include <queue>
+#include <mutex>
 
 namespace plugin_h264 {
+
+// 帧缓冲池，用于重用内存
+class FrameBufferPool {
+public:
+    FrameBufferPool(size_t pool_size = 3) : pool_size_(pool_size) {}
+    
+    std::unique_ptr<uint8_t[]> acquire(size_t size) {
+        std::lock_guard<std::mutex> lock(pool_mutex_);
+        if (!pool_.empty() && pool_.front().second >= size) {
+            auto buffer = std::move(pool_.front().first);
+            pool_.pop();
+            return buffer;
+        }
+        return std::make_unique<uint8_t[]>(size);
+    }
+    
+    void release(std::unique_ptr<uint8_t[]> buffer, size_t size) {
+        if (!buffer) return;
+        std::lock_guard<std::mutex> lock(pool_mutex_);
+        if (pool_.size() < pool_size_) {
+            pool_.push({std::move(buffer), size});
+        }
+    }
+    
+    void clear() {
+        std::lock_guard<std::mutex> lock(pool_mutex_);
+        while (!pool_.empty()) {
+            pool_.pop();
+        }
+    }
+    
+private:
+    size_t pool_size_;
+    std::queue<std::pair<std::unique_ptr<uint8_t[]>, size_t>> pool_;
+    mutable std::mutex pool_mutex_;
+};
 
 class H264Decoder : public ErrorHandler {
 public:
@@ -49,6 +88,9 @@ private:
     // 帧缓冲区（重用以减少内存分配）
     std::unique_ptr<uint8_t[]> frame_buffer_;
     size_t frame_buffer_size_;
+    
+    // 帧缓冲池
+    FrameBufferPool buffer_pool_;
 };
 
 } // namespace plugin_h264

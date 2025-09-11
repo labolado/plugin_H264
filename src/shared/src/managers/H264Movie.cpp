@@ -336,7 +336,7 @@ bool H264Movie::decodeNextVideoFrame() {
         const auto& track = track_info[i];
         if (track.type == MP4TrackType::VIDEO && track.codec == CodecType::H264) {
 
-            // 首先确保SPS/PPS已经发送给解码器
+            // 优化：只在第一次或seek后需要发送SPS/PPS
             if (!sps_pps_sent_) {
                 std::vector<uint8_t> sps_data, pps_data;
                 if (demuxer->extractSPS(track.track_id, sps_data) &&
@@ -346,11 +346,13 @@ bool H264Movie::decodeNextVideoFrame() {
 
                     // 为SPS添加NAL起始码
                     std::vector<uint8_t> sps_nal;
+                    sps_nal.reserve(sps_data.size() + 4);
                     sps_nal.insert(sps_nal.end(), {0x00, 0x00, 0x00, 0x01});
                     sps_nal.insert(sps_nal.end(), sps_data.begin(), sps_data.end());
 
                     // 为PPS添加NAL起始码
                     std::vector<uint8_t> pps_nal;
+                    pps_nal.reserve(pps_data.size() + 4);
                     pps_nal.insert(pps_nal.end(), {0x00, 0x00, 0x00, 0x01});
                     pps_nal.insert(pps_nal.end(), pps_data.begin(), pps_data.end());
 
@@ -369,8 +371,10 @@ bool H264Movie::decodeNextVideoFrame() {
 
             MP4Sample sample;
             if (demuxer->readNextSample(track.track_id, sample)) {
-                // 转换AVCC格式为Annex-B格式
+                // 优化：预分配缓冲区大小，避免动态扩展
                 std::vector<uint8_t> annexb_frame;
+                annexb_frame.reserve(sample.data.size() + 64); // 预留额外空间给起始码
+                
                 size_t offset = 0;
                 while (offset < sample.data.size()) {
                     if (offset + 4 > sample.data.size()) break;
@@ -385,8 +389,12 @@ bool H264Movie::decodeNextVideoFrame() {
 
                     if (nal_length > sample.data.size() - offset) break;
 
-                    // 添加NAL起始码
-                    annexb_frame.insert(annexb_frame.end(), {0x00, 0x00, 0x00, 0x01});
+                    // 使用push_back批量添加，比insert更高效
+                    annexb_frame.push_back(0x00);
+                    annexb_frame.push_back(0x00);
+                    annexb_frame.push_back(0x00);
+                    annexb_frame.push_back(0x01);
+                    
                     // 添加NAL单元数据
                     annexb_frame.insert(annexb_frame.end(),
                                        sample.data.begin() + offset,
