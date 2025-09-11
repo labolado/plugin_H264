@@ -61,14 +61,14 @@ bool H264Decoder::initialize() {
 }
 
 bool H264Decoder::setupDecoderOptions() {
-    // 基于Mozilla和OpenH264官方测试代码的最佳实践
+    // 使用验证过的参数配置，确保与原始版本一致
     SDecodingParam sDecParam;
     memset(&sDecParam, 0, sizeof(SDecodingParam));
 
-    // 使用与Mozilla GMP实现相同的参数，提高兼容性
-    sDecParam.sVideoProperty.eVideoBsType = VIDEO_BITSTREAM_DEFAULT;  // 改为DEFAULT以提高兼容性
+    // 关键：保持使用VIDEO_BITSTREAM_AVC（原始工作版本的配置）
+    sDecParam.sVideoProperty.eVideoBsType = VIDEO_BITSTREAM_AVC;
     sDecParam.uiTargetDqLayer = UCHAR_MAX;  // 解码所有层
-    sDecParam.eEcActiveIdc = ERROR_CON_SLICE_COPY;  // 保持我们验证过的错误隐藏策略
+    sDecParam.eEcActiveIdc = ERROR_CON_SLICE_COPY;  // 保持验证过的错误隐藏策略
     sDecParam.sVideoProperty.size = sizeof(sDecParam.sVideoProperty);
 
     int ret = decoder_->Initialize(&sDecParam);
