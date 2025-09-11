@@ -1,7 +1,6 @@
 #include "../include/decoders/H264Decoder.h"
 #include <cstring>
 #include <algorithm>
-#include <thread>
 
 namespace plugin_h264 {
 
@@ -29,22 +28,6 @@ bool H264Decoder::initialize() {
         setError(H264Error::DECODER_INIT_FAILED,
                 "Failed to create OpenH264 decoder, error code: " + std::to_string(result));
         return false;
-    }
-
-    // 在Initialize之前设置多线程 - 这是正确的时机
-    int num_threads = std::thread::hardware_concurrency();
-    if (num_threads == 0) {
-        num_threads = 4; // 默认使用4线程
-    }
-    if (num_threads > 1) {
-        // OpenH264限制最大线程数为3（根据源码）
-        num_threads = std::min(num_threads, 3);
-        int ret = decoder_->SetOption(DECODER_OPTION_NUM_OF_THREADS, &num_threads);
-        if (ret == 0) {
-            PLUGIN_H264_LOG( ("H264 decoder multi-threading configured with %d threads\n", num_threads) );
-        } else {
-            PLUGIN_H264_LOG( ("Note: Failed to configure multi-threading, using single thread\n") );
-        }
     }
 
     // 设置解码器选项
