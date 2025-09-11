@@ -67,7 +67,7 @@ bool H264Decoder::setupDecoderOptions() {
         setError(H264Error::NONE, "Warning: Failed to set error concealment option");
     }
     
-    // 启用多线程解码
+    // 启用多线程解码 - 在Initialize之后设置
     int num_threads = std::thread::hardware_concurrency();
     // 处理hardware_concurrency()返回0的情况
     if (num_threads == 0) {
@@ -77,10 +77,11 @@ bool H264Decoder::setupDecoderOptions() {
         // 限制最大线程数为8（避免过多线程造成开销）
         num_threads = std::min(num_threads, 8);
         ret = decoder_->SetOption(DECODER_OPTION_NUM_OF_THREADS, &num_threads);
-        if (ret == 0) {
-            PLUGIN_H264_LOG( ("H264 decoder multi-threading enabled with %d threads\n", num_threads) );
+        if (ret != 0) {
+            // 如果设置线程失败，不影响解码功能
+            PLUGIN_H264_LOG( ("Note: Multi-threading not available, using single thread\n") );
         } else {
-            PLUGIN_H264_LOG( ("Failed to enable multi-threading, continuing with single thread\n") );
+            PLUGIN_H264_LOG( ("H264 decoder multi-threading enabled with %d threads\n", num_threads) );
         }
     }
 

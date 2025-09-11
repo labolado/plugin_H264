@@ -5,6 +5,7 @@
 #include "../utils/ErrorHandler.h"
 #include "codec_def.h"  // OpenH264头文件
 #include "codec_api.h"
+#include "codec_app_def.h"  // For DECODER_OPTION_NUM_OF_THREADS
 #include <vector>
 #include <queue>
 #include <mutex>
