@@ -1,6 +1,7 @@
 #include "../include/decoders/H264Decoder.h"
 #include <cstring>
 #include <algorithm>
+#include <thread>
 
 namespace plugin_h264 {
 
@@ -30,6 +31,24 @@ bool H264Decoder::initialize() {
         return false;
     }
 
+    // 在Initialize之前设置多线程选项（基于Mozilla和OpenH264测试代码的最佳实践）
+    int num_threads = std::thread::hardware_concurrency();
+    if (num_threads == 0) {
+        num_threads = 4; // 后备默认值
+    }
+    if (num_threads > 1) {
+        // OpenH264内部限制最大线程数为3，并且限制不超过CPU核心数
+        num_threads = std::min({num_threads, 3});
+        
+        long ret = decoder_->SetOption(DECODER_OPTION_NUM_OF_THREADS, &num_threads);
+        if (ret == cmResultSuccess) {
+            PLUGIN_H264_LOG( ("H264 decoder multi-threading enabled with %d threads\n", num_threads) );
+        } else {
+            // 多线程设置失败不是致命错误，继续单线程模式
+            PLUGIN_H264_LOG( ("Multi-threading setup failed (ret=%ld), continuing with single thread\n", ret) );
+        }
+    }
+
     // 设置解码器选项
     if (!setupDecoderOptions()) {
         destroy();
@@ -42,13 +61,14 @@ bool H264Decoder::initialize() {
 }
 
 bool H264Decoder::setupDecoderOptions() {
-    // 基于验证结果：使用DECODER_OPTION_ERROR_CON_IDC而不是DECODER_OPTION_DATAFORMAT
+    // 基于Mozilla和OpenH264官方测试代码的最佳实践
     SDecodingParam sDecParam;
     memset(&sDecParam, 0, sizeof(SDecodingParam));
 
-    sDecParam.sVideoProperty.eVideoBsType = VIDEO_BITSTREAM_AVC;
+    // 使用与Mozilla GMP实现相同的参数，提高兼容性
+    sDecParam.sVideoProperty.eVideoBsType = VIDEO_BITSTREAM_DEFAULT;  // 改为DEFAULT以提高兼容性
     sDecParam.uiTargetDqLayer = UCHAR_MAX;  // 解码所有层
-    sDecParam.eEcActiveIdc = ERROR_CON_SLICE_COPY;  // 错误隐藏
+    sDecParam.eEcActiveIdc = ERROR_CON_SLICE_COPY;  // 保持我们验证过的错误隐藏策略
     sDecParam.sVideoProperty.size = sizeof(sDecParam.sVideoProperty);
 
     int ret = decoder_->Initialize(&sDecParam);
