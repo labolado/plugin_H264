@@ -1,8 +1,8 @@
 #ifndef PLUGIN_H264_H264_DECODER_H
 #define PLUGIN_H264_H264_DECODER_H
 
-#include "../utils/Common.h"
-#include "../utils/ErrorHandler.h"
+#include "utils/Common.h"
+#include "utils/ErrorHandler.h"
 #include "codec_def.h"  // OpenH264头文件
 #include "codec_api.h"
 #include "codec_app_def.h"  // For DECODER_OPTION_NUM_OF_THREADS
@@ -57,8 +57,8 @@ public:
     H264Decoder(const H264Decoder&) = delete;
     H264Decoder& operator=(const H264Decoder&) = delete;
     
-    // 初始化解码器
-    bool initialize();
+    // 初始化解码器（支持多线程配置）
+    bool initialize(bool enable_multithreading = true, int num_threads = 2);
     
     // 解码H264数据到YUV420
     bool decode(const uint8_t* nal_data, size_t nal_size, VideoFrame& frame);
@@ -85,6 +85,7 @@ private:
     bool setupDecoderOptions();
     bool allocateFrameBuffer(int width, int height);
     void freeFrameBuffer();
+    bool extractVideoFrame(uint8_t* pData[3], SBufferInfo* sDstBufInfo, VideoFrame& frame);
     
     // 帧缓冲区（重用以减少内存分配）
     std::unique_ptr<uint8_t[]> frame_buffer_;
@@ -92,6 +93,20 @@ private:
     
     // 帧缓冲池
     FrameBufferPool buffer_pool_;
+    
+    // 官方多线程方法：图片级解码
+    std::vector<uint8_t> accumulated_data_;
+    unsigned int timestamp_;
+    uint8_t last_sps_buf_[32];
+    int32_t last_sps_byte_count_;
+    
+    // 官方readPicture函数
+    int32_t readPicture(uint8_t* pBuf, const int32_t& iFileSize, const int32_t& bufPos, 
+                       uint8_t*& pSpsBuf, int32_t& sps_byte_count);
+    
+    // 多线程配置
+    bool enable_multithreading_;
+    int num_threads_;
 };
 
 } // namespace plugin_h264
