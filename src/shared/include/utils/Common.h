@@ -26,23 +26,30 @@ enum class H264Error {
     THREAD_ERROR
 };
 
-// 视频帧结构
+// 视频帧结构 - 优化版本支持零拷贝模式
 struct VideoFrame {
-    uint8_t* y_plane;
-    uint8_t* u_plane;
-    uint8_t* v_plane;
-    int width;
-    int height;
-    int y_stride;
-    int uv_stride;
-    double timestamp;
+    uint8_t* y_plane;    // Y平面数据指针（支持零拷贝）
+    uint8_t* u_plane;    // U平面数据指针
+    uint8_t* v_plane;    // V平面数据指针
+    int width;           // 帧宽度
+    int height;          // 帧高度
+    int y_stride;        // Y平面stride（可能 != width）
+    int uv_stride;       // UV平面stride（可能 != width/2）
+    double timestamp;    // 时间戳
+    bool zero_copy_mode; // 是否为零拷贝模式（数据来自解码器内部缓冲区）
 
     VideoFrame() : y_plane(nullptr), u_plane(nullptr), v_plane(nullptr),
-                   width(0), height(0), y_stride(0), uv_stride(0), timestamp(0.0) {}
+                   width(0), height(0), y_stride(0), uv_stride(0), 
+                   timestamp(0.0), zero_copy_mode(false) {}
 
     bool isValid() const {
         return y_plane != nullptr && u_plane != nullptr && v_plane != nullptr &&
                width > 0 && height > 0;
+    }
+
+    // 检查是否为紧凑格式（stride == width）
+    bool isCompactFormat() const {
+        return y_stride == width && uv_stride == (width / 2);
     }
 };
 

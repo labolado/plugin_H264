@@ -10,6 +10,7 @@ H264Decoder::H264Decoder()
     , frame_width_(0)
     , frame_height_(0)
     , frame_buffer_size_(0)
+    , require_compact_format_(false)  // 默认使用零拷贝模式
     , buffer_pool_(3) {  // 使用3个缓冲区的池
 }
 
@@ -84,7 +85,7 @@ bool H264Decoder::decode(const uint8_t* nal_data, size_t nal_size, VideoFrame& f
     SBufferInfo sDstBufInfo;
     memset(&sDstBufInfo, 0, sizeof(SBufferInfo));
 
-    // 解码帧
+    // 调用 OpenH264 解码
     DECODING_STATE ret = decoder_->DecodeFrame2(
         nal_data,
         static_cast<int>(nal_size),
@@ -92,28 +93,24 @@ bool H264Decoder::decode(const uint8_t* nal_data, size_t nal_size, VideoFrame& f
         &sDstBufInfo
     );
 
-    if (ret != dsErrorFree) {
-        PLUGIN_H264_LOG( ("H264 Decoder decode error: %d, forcing decoder flush\n", ret) );
-
-        // 对于所有解码错误，都尝试刷新解码器
+    // 仅在严重错误时 flush（比如解码器状态崩坏）
+    if (ret == dsNoParamSets || ret == dsDataErrorConcealed) {
+        PLUGIN_H264_LOG(("H264 Decoder warning (recoverable): %d\n", ret));
+        return false; // 忽略这帧
+    } else if (ret != dsErrorFree) {
+        PLUGIN_H264_LOG(("H264 Decoder fatal error: %d, flushing\n", ret));
         memset(pData, 0, sizeof(pData));
         memset(&sDstBufInfo, 0, sizeof(SBufferInfo));
-
-        // 调用解码器刷新，传入空数据
-        DECODING_STATE flush_ret = decoder_->DecodeFrame2(nullptr, 0, pData, &sDstBufInfo);
-
-        PLUGIN_H264_LOG( ("Decoder flush completed, flush result: %d\n", flush_ret) );
-
+        decoder_->DecodeFrame2(nullptr, 0, pData, &sDstBufInfo); // flush 一次
         return false;
     }
 
-    // 检查是否有输出帧
+    // 如果没有输出帧（需要更多 NAL 累积），直接返回
     if (sDstBufInfo.iBufferStatus != 1) {
-        // 没有输出帧（可能需要更多数据）
         return false;
     }
 
-    // 提取帧信息
+    // 读取帧参数
     int width = sDstBufInfo.UsrData.sSystemBuffer.iWidth;
     int height = sDstBufInfo.UsrData.sSystemBuffer.iHeight;
     int stride_y = sDstBufInfo.UsrData.sSystemBuffer.iStride[0];
@@ -124,79 +121,52 @@ bool H264Decoder::decode(const uint8_t* nal_data, size_t nal_size, VideoFrame& f
         return false;
     }
 
-    // 更新解码器尺寸信息
     frame_width_ = width;
     frame_height_ = height;
 
-    // 分配或重新分配帧缓冲区
-    if (!allocateFrameBuffer(width, height)) {
-        return false;
-    }
-
-    // 复制YUV数据到输出帧
+    // ✅ 直接引用解码器输出（零拷贝模式）
+    // 如果调用方能接受 stride ≠ width，就直接用
     frame.width = width;
     frame.height = height;
+    frame.y_stride = stride_y;
+    frame.uv_stride = stride_uv;
+    frame.y_plane = pData[0];
+    frame.u_plane = pData[1];
+    frame.v_plane = pData[2];
+    frame.zero_copy_mode = true;
 
-    int uv_width = width / 2;
-    int uv_height = height / 2;
-
-    // 设置正确的stride（我们复制到紧凑格式）
-    frame.y_stride = width;
-    frame.uv_stride = uv_width;
-
-    PLUGIN_H264_LOG( ("H264 Decoder output: %dx%d, src_strides: Y=%d UV=%d, dst_strides: Y=%d UV=%d\n",
-           width, height, stride_y, stride_uv, frame.y_stride, frame.uv_stride) );
-
-    if (!pData[0] || !pData[1] || !pData[2]) {
-        setError(H264Error::DECODE_FAILED, "Decoder returned null plane pointers");
-        return false;
-    }
-
-    // 必须拷贝数据，因为pData指针在下次解码时会失效
-    // Y平面
-    frame.y_plane = frame_buffer_.get();
-    uint8_t* src_y = pData[0];
-    uint8_t* dst_y = frame.y_plane;
-    
-    // 优化：如果stride匹配，使用单次memcpy
-    if (stride_y == width) {
-        memcpy(dst_y, src_y, width * height);
-    } else {
-        for (int i = 0; i < height; ++i) {
-            memcpy(dst_y, src_y, width);
-            src_y += stride_y;
-            dst_y += width;
+    // 如果调用方 **必须要紧凑格式**，再做一次 memcpy
+    if (require_compact_format_) {
+        if (!allocateFrameBuffer(width, height)) {
+            return false;
         }
-    }
 
-    // U平面
-    frame.u_plane = frame.y_plane + width * height;
-    uint8_t* src_u = pData[1];
-    uint8_t* dst_u = frame.u_plane;
-    
-    if (stride_uv == uv_width) {
-        memcpy(dst_u, src_u, uv_width * uv_height);
-    } else {
-        for (int i = 0; i < uv_height; ++i) {
-            memcpy(dst_u, src_u, uv_width);
-            src_u += stride_uv;
-            dst_u += uv_width;
+        // Y plane
+        for (int i = 0; i < height; i++) {
+            memcpy(frame_buffer_.get() + i * width,
+                   pData[0] + i * stride_y,
+                   width);
         }
-    }
 
-    // V平面
-    frame.v_plane = frame.u_plane + uv_width * uv_height;
-    uint8_t* src_v = pData[2];
-    uint8_t* dst_v = frame.v_plane;
-    
-    if (stride_uv == uv_width) {
-        memcpy(dst_v, src_v, uv_width * uv_height);
-    } else {
-        for (int i = 0; i < uv_height; ++i) {
-            memcpy(dst_v, src_v, uv_width);
-            src_v += stride_uv;
-            dst_v += uv_width;
+        // U/V planes
+        int uv_width = width / 2;
+        int uv_height = height / 2;
+        for (int i = 0; i < uv_height; i++) {
+            memcpy(frame_buffer_.get() + width * height + i * uv_width,
+                   pData[1] + i * stride_uv,
+                   uv_width);
+            memcpy(frame_buffer_.get() + width * height + uv_width * uv_height + i * uv_width,
+                   pData[2] + i * stride_uv,
+                   uv_width);
         }
+
+        // 更新 frame 指针为紧凑格式
+        frame.y_plane = frame_buffer_.get();
+        frame.u_plane = frame_buffer_.get() + width * height;
+        frame.v_plane = frame.u_plane + uv_width * uv_height;
+        frame.y_stride = width;
+        frame.uv_stride = uv_width;
+        frame.zero_copy_mode = false;
     }
 
     clearError();

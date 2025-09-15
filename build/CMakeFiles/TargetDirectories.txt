@@ -1,0 +1,8 @@
+/Users/yee/data/dev/app/test/github/plugin_movie-main/plugin_H264/build/CMakeFiles/plugin_h264_static.dir
+/Users/yee/data/dev/app/test/github/plugin_movie-main/plugin_H264/build/CMakeFiles/plugin_h264.dir
+/Users/yee/data/dev/app/test/github/plugin_movie-main/plugin_H264/build/CMakeFiles/edit_cache.dir
+/Users/yee/data/dev/app/test/github/plugin_movie-main/plugin_H264/build/CMakeFiles/rebuild_cache.dir
+/Users/yee/data/dev/app/test/github/plugin_movie-main/plugin_H264/build/CMakeFiles/list_install_components.dir
+/Users/yee/data/dev/app/test/github/plugin_movie-main/plugin_H264/build/CMakeFiles/install.dir
+/Users/yee/data/dev/app/test/github/plugin_movie-main/plugin_H264/build/CMakeFiles/install/local.dir
+/Users/yee/data/dev/app/test/github/plugin_movie-main/plugin_H264/build/CMakeFiles/install/strip.dir

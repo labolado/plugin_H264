@@ -60,11 +60,14 @@ public:
     // 初始化解码器
     bool initialize();
     
-    // 解码H264数据到YUV420
+    // 解码H264数据到YUV420 - 支持零拷贝模式
     bool decode(const uint8_t* nal_data, size_t nal_size, VideoFrame& frame);
     
     // 获取解码器信息
     bool getDecoderInfo(int& width, int& height) const;
+    
+    // 设置是否需要紧凑格式（控制零拷贝模式）
+    void setCompactFormatRequired(bool required) { require_compact_format_ = required; }
     
     // 重置解码器
     void reset();
@@ -80,6 +83,9 @@ private:
     bool initialized_;
     int frame_width_;
     int frame_height_;
+    
+    // 零拷贝模式控制
+    bool require_compact_format_;  // 是否需要紧凑格式（禁用零拷贝）
     
     // 内部辅助方法
     bool setupDecoderOptions();

@@ -1,0 +1,29 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//Users/yee/data/dev/app/test/github/plugin_movie-main/shared/**)",
+      "Read(//Users/yee/data/dev/app/test/github/plugin_movie-main/**)",
+      "Bash(git add src/shared/include/decoders/H264Decoder.h src/shared/src/decoders/H264Decoder.cpp src/shared/src/managers/H264Movie.cpp src/mac/build_third_party_libs.sh)",
+      "Bash(git rm src/mac/build_thrid_party_libs.sh)",
+      "Bash(git push origin master)",
+      "Bash(g++ -std=c++17 -I third_party/openh264/codec/api/wels standalone_test.cpp third_party/openh264/build_mac_arm64/libopenh264.a -o standalone_test)",
+      "Bash(cmake ..)",
+      "Bash(make -j4)",
+      "Bash(g++ -std=c++17 -I third_party/openh264/codec/api/wels api_test.cpp third_party/openh264/build_mac_arm64/libopenh264.a -o api_test)",
+      "Bash(./api_test)",
+      "Bash(g++ -std=c++17 -I third_party/openh264/codec/api/wels -I third_party/minimp4 mp4_complete_test.cpp third_party/openh264/build_mac_arm64/libopenh264.a -o mp4_complete_test)",
+      "Bash(./mp4_complete_test)",
+      "Bash(./api_test third_party/openh264/res/Zhling_1280x720.264)",
+      "Bash(g++ -std=c++17 -I third_party/openh264/codec/api/wels realtime_test.cpp third_party/openh264/build_mac_arm64/libopenh264.a -o realtime_test)",
+      "Bash(./realtime_test)",
+      "Bash(./official_test)",
+      "Bash(make clean)",
+      "Bash(g++ -std=c++17 -I third_party/openh264/codec/api/wels integrated_test.cpp third_party/openh264/build_mac_arm64/libopenh264.a -o integrated_test)",
+      "Bash(./integrated_test)",
+      "Bash(pkill -f integrated_test)",
+      "Bash(g++ -std=c++17 -I third_party/openh264/codec/api/wels simple_integrated_test.cpp third_party/openh264/build_mac_arm64/libopenh264.a -o simple_integrated_test)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

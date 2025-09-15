@@ -1,0 +1,1 @@
+"/Applications/Corona/Corona Simulator.app/Contents/MacOS/Corona Simulator" -no-console YES
