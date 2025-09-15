@@ -112,15 +112,18 @@ bool FFmpegH264Decoder::decode(const uint8_t* nal_data, size_t nal_size, VideoFr
         return false;
     }
 
-    if (nal_data == nullptr || nal_size == 0) {
-        setError(H264Error::INVALID_PARAM, "Invalid NAL data");
+    if (nal_data == nullptr || nal_size == 0 || nal_size > INT_MAX) {
+        setError(H264Error::INVALID_PARAM, "Invalid NAL data or size too large");
         return false;
     }
 
-    // 准备packet数据
+    // 安全地准备packet数据
     av_packet_unref(av_packet_);
-    av_packet_->data = const_cast<uint8_t*>(nal_data);
-    av_packet_->size = static_cast<int>(nal_size);
+    if (av_new_packet(av_packet_, static_cast<int>(nal_size)) < 0) {
+        setError(H264Error::OUT_OF_MEMORY, "Failed to allocate packet");
+        return false;
+    }
+    memcpy(av_packet_->data, nal_data, nal_size);
 
     // 发送packet到解码器
     int ret = avcodec_send_packet(codec_context_, av_packet_);
@@ -181,8 +184,16 @@ bool FFmpegH264Decoder::convertAVFrameToVideoFrame(const AVFrame* av_frame, Vide
     int width = av_frame->width;
     int height = av_frame->height;
 
-    if (width <= 0 || height <= 0) {
-        setError(H264Error::DECODE_FAILED, "Invalid frame dimensions");
+    // 安全边界检查，防止整数溢出和过大帧
+    const int MAX_FRAME_SIZE = 8192;  // 合理的最大帧尺寸
+    if (width <= 0 || height <= 0 || width > MAX_FRAME_SIZE || height > MAX_FRAME_SIZE) {
+        setError(H264Error::DECODE_FAILED, "Invalid or unsafe frame dimensions");
+        return false;
+    }
+    
+    // 检查整数溢出
+    if (width > SIZE_MAX / height) {
+        setError(H264Error::DECODE_FAILED, "Frame size would cause integer overflow");
         return false;
     }
 
@@ -202,50 +213,71 @@ bool FFmpegH264Decoder::convertAVFrameToVideoFrame(const AVFrame* av_frame, Vide
     video_frame.u_plane = video_frame.y_plane + width * height;
     video_frame.v_plane = video_frame.u_plane + (width / 2) * (height / 2);
 
-    // 复制Y平面数据
+    // 安全复制Y平面数据
     uint8_t* dst_y = video_frame.y_plane;
     const uint8_t* src_y = av_frame->data[0];
     int src_stride_y = av_frame->linesize[0];
     
+    // 边界检查
+    if (!src_y || src_stride_y <= 0 || src_stride_y < width) {
+        setError(H264Error::DECODE_FAILED, "Invalid Y plane data or stride");
+        return false;
+    }
+    
     if (src_stride_y == width) {
-        // 优化：stride匹配时使用单次memcpy
-        memcpy(dst_y, src_y, width * height);
+        // 优化：stride匹配时使用单次memcpy，但要检查边界
+        size_t copy_size = static_cast<size_t>(width) * height;
+        memcpy(dst_y, src_y, copy_size);
     } else {
-        // 逐行复制
+        // 逐行复制，每行都检查边界
         for (int i = 0; i < height; ++i) {
-            memcpy(dst_y, src_y, width);
+            memcpy(dst_y, src_y, static_cast<size_t>(width));
             src_y += src_stride_y;
             dst_y += width;
         }
     }
 
-    // 复制U平面数据
+    // 安全复制U平面数据
     uint8_t* dst_u = video_frame.u_plane;
     const uint8_t* src_u = av_frame->data[1];
     int src_stride_u = av_frame->linesize[1];
     int uv_width = width / 2;
     int uv_height = height / 2;
     
+    // 边界检查
+    if (!src_u || src_stride_u <= 0 || src_stride_u < uv_width) {
+        setError(H264Error::DECODE_FAILED, "Invalid U plane data or stride");
+        return false;
+    }
+    
     if (src_stride_u == uv_width) {
-        memcpy(dst_u, src_u, uv_width * uv_height);
+        size_t copy_size = static_cast<size_t>(uv_width) * uv_height;
+        memcpy(dst_u, src_u, copy_size);
     } else {
         for (int i = 0; i < uv_height; ++i) {
-            memcpy(dst_u, src_u, uv_width);
+            memcpy(dst_u, src_u, static_cast<size_t>(uv_width));
             src_u += src_stride_u;
             dst_u += uv_width;
         }
     }
 
-    // 复制V平面数据
+    // 安全复制V平面数据
     uint8_t* dst_v = video_frame.v_plane;
     const uint8_t* src_v = av_frame->data[2];
     int src_stride_v = av_frame->linesize[2];
     
+    // 边界检查
+    if (!src_v || src_stride_v <= 0 || src_stride_v < uv_width) {
+        setError(H264Error::DECODE_FAILED, "Invalid V plane data or stride");
+        return false;
+    }
+    
     if (src_stride_v == uv_width) {
-        memcpy(dst_v, src_v, uv_width * uv_height);
+        size_t copy_size = static_cast<size_t>(uv_width) * uv_height;
+        memcpy(dst_v, src_v, copy_size);
     } else {
         for (int i = 0; i < uv_height; ++i) {
-            memcpy(dst_v, src_v, uv_width);
+            memcpy(dst_v, src_v, static_cast<size_t>(uv_width));
             src_v += src_stride_v;
             dst_v += uv_width;
         }
@@ -255,23 +287,29 @@ bool FFmpegH264Decoder::convertAVFrameToVideoFrame(const AVFrame* av_frame, Vide
 }
 
 bool FFmpegH264Decoder::allocateFrameBuffer(int width, int height) {
-    size_t y_size = width * height;
-    size_t uv_size = (width / 2) * (height / 2);
-    size_t total_size = y_size + uv_size * 2;
+    // 使用安全的帧大小计算
+    size_t total_size = calculateFrameSize(width, height);
+    if (total_size == 0) {
+        setError(H264Error::INVALID_PARAM, "Invalid frame size would cause overflow");
+        return false;
+    }
 
     if (frame_buffer_size_ < total_size) {
-        // 释放旧缓冲区到池中
-        if (frame_buffer_) {
-            buffer_pool_.release(std::move(frame_buffer_), frame_buffer_size_);
-        }
+        // 安全释放旧缓冲区到池中
+        freeFrameBuffer();
         
         try {
             // 从池中获取新缓冲区
             frame_buffer_ = buffer_pool_.acquire(total_size);
             frame_buffer_size_ = total_size;
         } catch (const std::bad_alloc&) {
+            frame_buffer_size_ = 0;  // 确保状态一致
             setError(H264Error::OUT_OF_MEMORY,
                     "Failed to allocate frame buffer of size: " + std::to_string(total_size));
+            return false;
+        } catch (...) {
+            frame_buffer_size_ = 0;
+            setError(H264Error::OUT_OF_MEMORY, "Unknown error allocating frame buffer");
             return false;
         }
     }
@@ -282,6 +320,7 @@ bool FFmpegH264Decoder::allocateFrameBuffer(int width, int height) {
 void FFmpegH264Decoder::freeFrameBuffer() {
     if (frame_buffer_) {
         buffer_pool_.release(std::move(frame_buffer_), frame_buffer_size_);
+        frame_buffer_.reset();  // 确保指针被清空
     }
     frame_buffer_size_ = 0;
 }
@@ -361,8 +400,31 @@ void FFmpegH264Decoder::setThreadCount(int thread_count) {
 }
 
 size_t FFmpegH264Decoder::calculateFrameSize(int width, int height) const {
-    size_t y_size = width * height;
-    size_t uv_size = (width / 2) * (height / 2);
+    if (width <= 0 || height <= 0) {
+        return 0;
+    }
+    
+    // 检查整数溢出 - Y平面
+    if (width > SIZE_MAX / height) {
+        return 0;
+    }
+    size_t y_size = static_cast<size_t>(width) * height;
+    
+    // UV平面大小计算
+    size_t uv_width = width / 2;
+    size_t uv_height = height / 2;
+    
+    // 检查UV平面溢出
+    if (uv_width > 0 && uv_height > SIZE_MAX / uv_width) {
+        return 0;
+    }
+    size_t uv_size = uv_width * uv_height;
+    
+    // 检查总大小溢出 (Y + U + V)
+    if (y_size > SIZE_MAX - (uv_size * 2)) {
+        return 0;
+    }
+    
     return y_size + uv_size * 2;
 }
 
