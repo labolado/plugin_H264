@@ -83,6 +83,12 @@ private:
     
     // 内部辅助方法
     bool setupDecoderOptions();
+    bool tryLenientConfiguration();
+    bool tryCompatibilityConfiguration();
+    bool tryBaselineConfiguration();
+    bool applyAggressiveCompatibilityOptions();
+    bool applyStandardCompatibilityOptions();
+    bool applyMinimalOptions();
     bool allocateFrameBuffer(int width, int height);
     void freeFrameBuffer();
     
