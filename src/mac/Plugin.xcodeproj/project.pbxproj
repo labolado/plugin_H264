@@ -37,7 +37,6 @@
 		4159EAD22E65B25D00D390DB /* syslib_channelMapDescr.h in Headers */ = {isa = PBXBuildFile; fileRef = 4159E3E52E65B25D00D390DB /* syslib_channelMapDescr.h */; };
 		4159EAEF2E65B25D00D390DB /* FDK_audio.h in Headers */ = {isa = PBXBuildFile; fileRef = 4159E3E22E65B25D00D390DB /* FDK_audio.h */; };
 		415FA3E02E71769A00EAE0C5 /* libfdk-aac.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 415FA3DE2E71769A00EAE0C5 /* libfdk-aac.a */; };
-		415FA3E12E71769A00EAE0C5 /* libopenh264.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 415FA3DF2E71769A00EAE0C5 /* libopenh264.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXBuildRule section */
@@ -87,7 +86,6 @@
 		4159E4572E65B25D00D390DB /* codec_def.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = codec_def.h; sourceTree = "<group>"; };
 		4159E4582E65B25D00D390DB /* codec_ver.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = codec_ver.h; sourceTree = "<group>"; };
 		415FA3DE2E71769A00EAE0C5 /* libfdk-aac.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libfdk-aac.a"; path = "third_party_libs/libfdk-aac.a"; sourceTree = "<group>"; };
-		415FA3DF2E71769A00EAE0C5 /* libopenh264.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libopenh264.a; path = third_party_libs/libopenh264.a; sourceTree = "<group>"; };
 		A4430897164C70D800B9117B /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		A49186401641DDB800A39286 /* plugin_h264.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = plugin_h264.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -98,7 +96,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				415FA3E02E71769A00EAE0C5 /* libfdk-aac.a in Frameworks */,
-				415FA3E12E71769A00EAE0C5 /* libopenh264.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -348,7 +345,6 @@
 			isa = PBXGroup;
 			children = (
 				415FA3DE2E71769A00EAE0C5 /* libfdk-aac.a */,
-				415FA3DF2E71769A00EAE0C5 /* libopenh264.a */,
 				A4430897164C70D800B9117B /* Foundation.framework */,
 			);
 			name = Frameworks;
