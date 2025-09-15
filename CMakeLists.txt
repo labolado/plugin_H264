@@ -30,6 +30,20 @@ set(OPENH264_DIR ${THIRD_PARTY_DIR}/openh264)
 set(FDKAAC_DIR ${THIRD_PARTY_DIR}/fdk-aac)
 set(MINIMP4_DIR ${THIRD_PARTY_DIR}/minimp4)
 
+# 添加FFmpeg支持选项
+option(USE_FFMPEG "Use FFmpeg instead of OpenH264 for decoding" OFF)
+
+# 查找FFmpeg库
+if(USE_FFMPEG)
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(FFMPEG_AVCODEC REQUIRED libavcodec)
+    pkg_check_modules(FFMPEG_AVUTIL REQUIRED libavutil)
+    add_definitions(-DUSE_FFMPEG)
+    message(STATUS "Using FFmpeg for H264 decoding")
+else()
+    message(STATUS "Using OpenH264 for H264 decoding")
+endif()
+
 # 包含目录
 include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/include
@@ -40,6 +54,12 @@ include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/include/lua
     ${LUA_INCLUDE_DIRS}
 )
+
+# 添加FFmpeg包含目录
+if(USE_FFMPEG)
+    include_directories(${FFMPEG_AVCODEC_INCLUDE_DIRS})
+    include_directories(${FFMPEG_AVUTIL_INCLUDE_DIRS})
+endif()
 
 # 查找OpenH264库
 find_library(OPENH264_LIBRARY
@@ -86,16 +106,29 @@ else()
 endif()
 
 # 源文件
-set(PLUGIN_SOURCES
-    src/decoders/H264Decoder.cpp
-    src/decoders/AACDecoder.cpp
-    src/decoders/MP4Demuxer.cpp
-    src/managers/DecoderManager.cpp
-    src/managers/H264Movie.cpp
-    src/utils/ErrorHandler.cpp
-    src/utils/MiniMP4Implementation.cpp
-    src/lua/H264TextureBinding.cpp
-)
+if(USE_FFMPEG)
+    set(PLUGIN_SOURCES
+        src/shared/src/decoders/FFmpegH264Decoder.cpp
+        src/shared/src/decoders/AACDecoder.cpp
+        src/shared/src/decoders/MP4Demuxer.cpp
+        src/shared/src/managers/DecoderManager.cpp
+        src/shared/src/managers/H264Movie.cpp
+        src/shared/src/utils/ErrorHandler.cpp
+        src/shared/src/utils/MiniMP4Implementation.cpp
+        src/lua/H264TextureBinding.cpp
+    )
+else()
+    set(PLUGIN_SOURCES
+        src/shared/src/decoders/H264Decoder.cpp
+        src/shared/src/decoders/AACDecoder.cpp
+        src/shared/src/decoders/MP4Demuxer.cpp
+        src/shared/src/managers/DecoderManager.cpp
+        src/shared/src/managers/H264Movie.cpp
+        src/shared/src/utils/ErrorHandler.cpp
+        src/shared/src/utils/MiniMP4Implementation.cpp
+        src/lua/H264TextureBinding.cpp
+    )
+endif()
 
 # 添加Corona兼容层（仅用于独立测试）
 if(STANDALONE_BUILD)
@@ -106,24 +139,70 @@ else()
 endif()
 
 # 头文件
-set(PLUGIN_HEADERS
-    include/decoders/H264Decoder.h
-    include/decoders/AACDecoder.h
-    include/decoders/MP4Demuxer.h
-    include/managers/DecoderManager.h
-    include/managers/H264Movie.h
-    include/utils/ErrorHandler.h
-    include/utils/Common.h
-    include/lua/H264TextureBinding.h
-)
+if(USE_FFMPEG)
+    set(PLUGIN_HEADERS
+        src/shared/include/decoders/FFmpegH264Decoder.h
+        src/shared/include/decoders/AACDecoder.h
+        src/shared/include/decoders/MP4Demuxer.h
+        src/shared/include/managers/DecoderManager.h
+        src/shared/include/managers/H264Movie.h
+        src/shared/include/utils/ErrorHandler.h
+        src/shared/include/utils/Common.h
+        include/lua/H264TextureBinding.h
+    )
+else()
+    set(PLUGIN_HEADERS
+        src/shared/include/decoders/H264Decoder.h
+        src/shared/include/decoders/AACDecoder.h
+        src/shared/include/decoders/MP4Demuxer.h
+        src/shared/include/managers/DecoderManager.h
+        src/shared/include/managers/H264Movie.h
+        src/shared/include/utils/ErrorHandler.h
+        src/shared/include/utils/Common.h
+        include/lua/H264TextureBinding.h
+    )
+endif()
 
 # 创建静态库
 add_library(plugin_h264_static STATIC ${PLUGIN_SOURCES} ${PLUGIN_HEADERS})
-target_link_libraries(plugin_h264_static ${OPENH264_LIBRARY} ${FDKAAC_LIBRARY} ${LUA_LIBRARIES} ${OPENAL_LIBRARY})
+
+# 链接库
+if(USE_FFMPEG)
+    target_link_libraries(plugin_h264_static 
+        ${FFMPEG_AVCODEC_LIBRARIES} 
+        ${FFMPEG_AVUTIL_LIBRARIES}
+        ${FDKAAC_LIBRARY} 
+        ${LUA_LIBRARIES} 
+        ${OPENAL_LIBRARY}
+    )
+else()
+    target_link_libraries(plugin_h264_static 
+        ${OPENH264_LIBRARY} 
+        ${FDKAAC_LIBRARY} 
+        ${LUA_LIBRARIES} 
+        ${OPENAL_LIBRARY}
+    )
+endif()
 
 # 创建动态库 (用于Solar2D插件)
 add_library(plugin_h264 SHARED ${PLUGIN_SOURCES} ${PLUGIN_HEADERS})
-target_link_libraries(plugin_h264 ${OPENH264_LIBRARY} ${FDKAAC_LIBRARY} ${LUA_LIBRARIES} ${OPENAL_LIBRARY})
+
+if(USE_FFMPEG)
+    target_link_libraries(plugin_h264 
+        ${FFMPEG_AVCODEC_LIBRARIES} 
+        ${FFMPEG_AVUTIL_LIBRARIES}
+        ${FDKAAC_LIBRARY} 
+        ${LUA_LIBRARIES} 
+        ${OPENAL_LIBRARY}
+    )
+else()
+    target_link_libraries(plugin_h264 
+        ${OPENH264_LIBRARY} 
+        ${FDKAAC_LIBRARY} 
+        ${LUA_LIBRARIES} 
+        ${OPENAL_LIBRARY}
+    )
+endif()
 
 # 测试选项
 option(ENABLE_TESTING "Enable unit tests" ON)

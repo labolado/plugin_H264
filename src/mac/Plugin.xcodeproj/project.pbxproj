@@ -14,13 +14,13 @@
 		4159DF5A2E65924700D390DB /* H264TextureBinding.h in Headers */ = {isa = PBXBuildFile; fileRef = 4159D8F92E65924600D390DB /* H264TextureBinding.h */; };
 		4159DF712E65924700D390DB /* alc.h in Headers */ = {isa = PBXBuildFile; fileRef = 4159D8F32E65924600D390DB /* alc.h */; };
 		4159DF882E65924700D390DB /* Common.h in Headers */ = {isa = PBXBuildFile; fileRef = 4159D8FF2E65924600D390DB /* Common.h */; };
-		4159DFBC2E65924700D390DB /* H264Decoder.h in Headers */ = {isa = PBXBuildFile; fileRef = 4159D8F62E65924600D390DB /* H264Decoder.h */; };
+		4159DFBC2E65924700D390DB /* FFmpegH264Decoder.h in Headers */ = {isa = PBXBuildFile; fileRef = 4159D8F62E65924600D390DB /* FFmpegH264Decoder.h */; };
 		4159DFC92E65924700D390DB /* ErrorHandler.h in Headers */ = {isa = PBXBuildFile; fileRef = 4159D9002E65924600D390DB /* ErrorHandler.h */; };
 		4159E0042E65924700D390DB /* DecoderManager.h in Headers */ = {isa = PBXBuildFile; fileRef = 4159D8FC2E65924600D390DB /* DecoderManager.h */; };
 		4159E0462E65924700D390DB /* MiniMP4Implementation.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4159D90E2E65924600D390DB /* MiniMP4Implementation.cpp */; };
 		4159E0472E65924700D390DB /* plugin_h264.c in Sources */ = {isa = PBXBuildFile; fileRef = 4159D8F02E65924600D390DB /* plugin_h264.c */; };
 		4159E04A2E65924700D390DB /* DecoderManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4159D90A2E65924600D390DB /* DecoderManager.cpp */; };
-		4159E0B82E65924700D390DB /* H264Decoder.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4159D9042E65924600D390DB /* H264Decoder.cpp */; };
+		4159E0B82E65924700D390DB /* FFmpegH264Decoder.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4159D9042E65924600D390DB /* FFmpegH264Decoder.cpp */; };
 		4159E1472E65924700D390DB /* ErrorHandler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4159D90D2E65924600D390DB /* ErrorHandler.cpp */; };
 		4159E16A2E65924700D390DB /* MP4Demuxer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4159D9052E65924600D390DB /* MP4Demuxer.cpp */; };
 		4159E1D12E65924700D390DB /* H264Movie.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4159D90B2E65924600D390DB /* H264Movie.cpp */; };
@@ -61,7 +61,7 @@
 		4159D8F22E65924600D390DB /* al.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = al.h; sourceTree = "<group>"; };
 		4159D8F32E65924600D390DB /* alc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = alc.h; sourceTree = "<group>"; };
 		4159D8F52E65924600D390DB /* AACDecoder.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AACDecoder.h; sourceTree = "<group>"; };
-		4159D8F62E65924600D390DB /* H264Decoder.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = H264Decoder.h; sourceTree = "<group>"; };
+		4159D8F62E65924600D390DB /* FFmpegH264Decoder.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FFmpegH264Decoder.h; sourceTree = "<group>"; };
 		4159D8F72E65924600D390DB /* MP4Demuxer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MP4Demuxer.h; sourceTree = "<group>"; };
 		4159D8F92E65924600D390DB /* H264TextureBinding.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = H264TextureBinding.h; sourceTree = "<group>"; };
 		4159D8FC2E65924600D390DB /* DecoderManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DecoderManager.h; sourceTree = "<group>"; };
@@ -69,7 +69,7 @@
 		4159D8FF2E65924600D390DB /* Common.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Common.h; sourceTree = "<group>"; };
 		4159D9002E65924600D390DB /* ErrorHandler.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ErrorHandler.h; sourceTree = "<group>"; };
 		4159D9032E65924600D390DB /* AACDecoder.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = AACDecoder.cpp; sourceTree = "<group>"; };
-		4159D9042E65924600D390DB /* H264Decoder.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = H264Decoder.cpp; sourceTree = "<group>"; };
+		4159D9042E65924600D390DB /* FFmpegH264Decoder.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = FFmpegH264Decoder.cpp; sourceTree = "<group>"; };
 		4159D9052E65924600D390DB /* MP4Demuxer.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = MP4Demuxer.cpp; sourceTree = "<group>"; };
 		4159D9072E65924600D390DB /* H264TextureBinding.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = H264TextureBinding.cpp; sourceTree = "<group>"; };
 		4159D90A2E65924600D390DB /* DecoderManager.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = DecoderManager.cpp; sourceTree = "<group>"; };
@@ -126,7 +126,7 @@
 			isa = PBXGroup;
 			children = (
 				4159D8F52E65924600D390DB /* AACDecoder.h */,
-				4159D8F62E65924600D390DB /* H264Decoder.h */,
+				4159D8F62E65924600D390DB /* FFmpegH264Decoder.h */,
 				4159D8F72E65924600D390DB /* MP4Demuxer.h */,
 			);
 			path = decoders;
@@ -174,7 +174,7 @@
 			isa = PBXGroup;
 			children = (
 				4159D9032E65924600D390DB /* AACDecoder.cpp */,
-				4159D9042E65924600D390DB /* H264Decoder.cpp */,
+				4159D9042E65924600D390DB /* FFmpegH264Decoder.cpp */,
 				4159D9052E65924600D390DB /* MP4Demuxer.cpp */,
 			);
 			path = decoders;
@@ -378,7 +378,7 @@
 				4159DF5A2E65924700D390DB /* H264TextureBinding.h in Headers */,
 				4159DF712E65924700D390DB /* alc.h in Headers */,
 				4159DF882E65924700D390DB /* Common.h in Headers */,
-				4159DFBC2E65924700D390DB /* H264Decoder.h in Headers */,
+				4159DFBC2E65924700D390DB /* FFmpegH264Decoder.h in Headers */,
 				4159DFC92E65924700D390DB /* ErrorHandler.h in Headers */,
 				4159E0042E65924700D390DB /* DecoderManager.h in Headers */,
 			);
@@ -440,7 +440,7 @@
 				4159E0462E65924700D390DB /* MiniMP4Implementation.cpp in Sources */,
 				4159E0472E65924700D390DB /* plugin_h264.c in Sources */,
 				4159E04A2E65924700D390DB /* DecoderManager.cpp in Sources */,
-				4159E0B82E65924700D390DB /* H264Decoder.cpp in Sources */,
+				4159E0B82E65924700D390DB /* FFmpegH264Decoder.cpp in Sources */,
 				4159E1472E65924700D390DB /* ErrorHandler.cpp in Sources */,
 				4159E16A2E65924700D390DB /* MP4Demuxer.cpp in Sources */,
 				4159E1D12E65924700D390DB /* H264Movie.cpp in Sources */,
@@ -513,38 +513,72 @@
 		A491863E1641DDB800A39286 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD)";
+				ARCHS = arm64;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++14";
 				CLANG_CXX_LIBRARY = "libc++";
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					USE_FFMPEG,
+					"$(inherited)",
+				);
+				HEADER_SEARCH_PATHS = (
+					"/opt/homebrew/Cellar/ffmpeg/8.0_1/include",
+				);
 				INSTALL_PATH = "@rpath";
 				LIBRARY_SEARCH_PATHS = (
 					"${SRCROOT}/third_party_libs",
 					"$(PROJECT_DIR)/third_party_libs",
+					"/opt/homebrew/lib",
+				);
+				OTHER_LDFLAGS = (
+					"-undefined",
+					dynamic_lookup,
+					"-lavcodec",
+					"-lavutil",
+					"-L/opt/homebrew/Cellar/ffmpeg/8.0_1/lib",
+					"-framework",
+					"OpenAL",
 				);
 				PRODUCT_NAME = plugin_h264;
-				USER_HEADER_SEARCH_PATHS = "${SRCROOT}/Native/Corona/shared/include/Corona ${SRCROOT}/Native/Corona/shared/include/lua ${SRCROOT}/../shared/include ${SRCROOT}/../../third_party/openh264/codec/api/wels ${SRCROOT}/../../third_party/fdk-aac/libAACdec/include ${SRCROOT}/../../third_party/fdk-aac/libSYS/include $(SRCROOT)/../../third_party/minimp4";
+				USER_HEADER_SEARCH_PATHS = "${SRCROOT}/Native/Corona/shared/include/Corona ${SRCROOT}/Native/Corona/shared/include/lua ${SRCROOT}/../shared/include ${SRCROOT}/../../third_party/fdk-aac/libAACdec/include ${SRCROOT}/../../third_party/fdk-aac/libSYS/include $(SRCROOT)/../../third_party/minimp4 /opt/homebrew/Cellar/ffmpeg/8.0_1/include";
 			};
 			name = Debug;
 		};
 		A491863F1641DDB800A39286 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD)";
+				ARCHS = arm64;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++14";
 				CLANG_CXX_LIBRARY = "libc++";
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					USE_FFMPEG,
+					"$(inherited)",
+				);
+				HEADER_SEARCH_PATHS = (
+					"/opt/homebrew/Cellar/ffmpeg/8.0_1/include",
+				);
 				INSTALL_PATH = "@rpath";
 				LIBRARY_SEARCH_PATHS = (
 					"${SRCROOT}/third_party_libs",
 					"$(PROJECT_DIR)/third_party_libs",
+					"/opt/homebrew/lib",
+				);
+				OTHER_LDFLAGS = (
+					"-undefined",
+					dynamic_lookup,
+					"-lavcodec",
+					"-lavutil",
+					"-L/opt/homebrew/Cellar/ffmpeg/8.0_1/lib",
+					"-framework",
+					"OpenAL",
 				);
 				PRODUCT_NAME = plugin_h264;
-				USER_HEADER_SEARCH_PATHS = "${SRCROOT}/Native/Corona/shared/include/Corona ${SRCROOT}/Native/Corona/shared/include/lua ${SRCROOT}/../shared/include ${SRCROOT}/../../third_party/openh264/codec/api/wels ${SRCROOT}/../../third_party/fdk-aac/libAACdec/include ${SRCROOT}/../../third_party/fdk-aac/libSYS/include $(SRCROOT)/../../third_party/minimp4";
+				USER_HEADER_SEARCH_PATHS = "${SRCROOT}/Native/Corona/shared/include/Corona ${SRCROOT}/Native/Corona/shared/include/lua ${SRCROOT}/../shared/include ${SRCROOT}/../../third_party/fdk-aac/libAACdec/include ${SRCROOT}/../../third_party/fdk-aac/libSYS/include $(SRCROOT)/../../third_party/minimp4 /opt/homebrew/Cellar/ffmpeg/8.0_1/include";
 			};
 			name = Release;
 		};

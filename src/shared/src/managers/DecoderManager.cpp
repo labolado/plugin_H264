@@ -17,7 +17,11 @@ bool DecoderManager::initialize() {
     }
     
     // 创建解码器实例
+#ifdef USE_FFMPEG
+    h264_decoder_ = std::make_unique<FFmpegH264Decoder>();
+#else
     h264_decoder_ = std::make_unique<H264Decoder>();
+#endif
     aac_decoder_ = std::make_unique<AACDecoder>();
     mp4_demuxer_ = std::make_unique<MP4Demuxer>();
     

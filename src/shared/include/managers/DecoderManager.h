@@ -3,7 +3,11 @@
 
 #include "../utils/Common.h"
 #include "../utils/ErrorHandler.h"
+#ifdef USE_FFMPEG
+#include "../decoders/FFmpegH264Decoder.h"
+#else
 #include "../decoders/H264Decoder.h"
+#endif
 #include "../decoders/AACDecoder.h"
 #include "../decoders/MP4Demuxer.h"
 #include <memory>
@@ -32,7 +36,11 @@ public:
     bool getFileInfo(std::vector<TrackInfo>& tracks, double& duration) const;
     
     // 获取解码器
+#ifdef USE_FFMPEG
+    FFmpegH264Decoder* getH264Decoder() { return h264_decoder_.get(); }
+#else
     H264Decoder* getH264Decoder() { return h264_decoder_.get(); }
+#endif
     AACDecoder* getAACDecoder() { return aac_decoder_.get(); }
     MP4Demuxer* getMP4Demuxer() { return mp4_demuxer_.get(); }
     
@@ -40,7 +48,11 @@ public:
     void destroy();
     
 private:
+#ifdef USE_FFMPEG
+    std::unique_ptr<FFmpegH264Decoder> h264_decoder_;
+#else
     std::unique_ptr<H264Decoder> h264_decoder_;
+#endif
     std::unique_ptr<AACDecoder> aac_decoder_;
     std::unique_ptr<MP4Demuxer> mp4_demuxer_;
     bool initialized_;
